@@ -10,7 +10,10 @@ import math
 import os
 from openai import OpenAI
 
-key = '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'
+f = open("openaikey.txt","\n")
+for line in f:
+    key = line.replace("\n","")
+f.close()
 client2 = OpenAI(api_key = key)
 def loseall(embed, author, commandInfo):
     points.update({str(author.id):0})

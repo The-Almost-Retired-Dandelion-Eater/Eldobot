@@ -263,5 +263,9 @@ async def on_message(message):
                         points.update({str(message.author.id):p+5})
             for b in bookNames:
                 if str.lower(message.content).startswith(str.lower(b)):
-                    await bible.get_verse(message.content, message, b)  
-client.run('MTE1Mzg5MTU2MjI1ODk3NjgzOA.G689ll.hTgVOeMi5V6JtxnCdGsih_3e6t97qdNWDvVjNs')
+                    await bible.get_verse(message.content, message, b)
+f = open("token.txt","r")
+for line in f:
+    tk = line.replace("\n","")
+f.close()
+client.run(tk)
