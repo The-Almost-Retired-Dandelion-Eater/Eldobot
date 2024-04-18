@@ -2,7 +2,6 @@ import shared_info
 import random
 from io import BytesIO
 import discord
-
 bibleBooks = shared_info.bibleBooks
 bibleVerses = shared_info.bibleVerses
 
