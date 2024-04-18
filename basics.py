@@ -70,9 +70,7 @@ import dropbox
     :return: Shareable link to the uploaded file.
     """
 
-    dbx = dropbox.Dropbox('sl.BkTycYdhS78YOOIFgA0XPEMjLLbpB93m395Ew8GMx0hSIhZgca-dGjYpEW5xXzv0dU9XsSIQtG1moAHXCtOZEqFfPcYboYmL9u5hpgVRO75rx7kEotAb5s0nOkYtsY9Gz8ViXQI96MGvJt-kr7wPBEY')
-
-    current_dir = os.getcwd()
+        current_dir = os.getcwd()
     path_to_file = os.path.join(current_dir, "exports", f"{message.guild.id}-export.json")
     # Upload the file
     with open(path_to_file, "rb") as f:
@@ -104,7 +102,11 @@ async def update_export(text, message):
 # Your initial tokens and app credentials
 #ACCESS_TOKEN = 'sl.BkZdtVI-xXLGxM1ZB75qUVbvVVWLMORv-_9oLShKTq5qzuGTNTCmUWVurK_KLSDM2ii2_eQaJaHrGRAMEpytjKT3jQF6JFV-bHGSuEQs7r2LJI9UOWz8S_jAwRtcCAJz2-kTA2b6h0cAiqyiIfv-NRI'
 ACCESS_TOKEN = 'Obviously incorrect access token'
-REFRESH_TOKEN = 'xppbTPuhzmMAAAAAAAAAAVhMlLyRHcnwXuq8nDoFqOqW24nHShx8n3LN5yGf_IKf'
+f = open("dropbox.txt","r")
+for line in f:
+    rf = line.replace("\n","")
+f.close()
+REFRESH_TOKEN = rf
 CLIENT_ID = 'pimqx7n2c0h0zwg'
 CLIENT_SECRET = 'blth9td92gm9gxj'
 

@@ -10,7 +10,7 @@ import math
 import os
 from openai import OpenAI
 
-f = open("openaikey.txt","\n")
+f = open("openaikey.txt","r")
 for line in f:
     key = line.replace("\n","")
 f.close()
@@ -111,7 +111,7 @@ def rob(embed, author, commandInfo):
         return embed
 def chatgpt(embed, author, commandInfo):
     embed.add_field(name = "Now look what you've done!", value = "You lot using this bot got this command disabled through spamming it. Happy now?")
-    return emed
+    return embed
     m = " ".join(commandInfo['message'].split(" ")[1:])
     if len(m) < 2:
         m = "artistically describe an empty void in fewer than 50 words"
