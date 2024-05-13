@@ -5,6 +5,14 @@ def prefix(input):
         return False
     else:
         return True
+def nonnegative_int(input):
+    try:
+        input = int(input)
+        if input >= 0:
+            return True
+        else:
+            return False
+    except: return False
 
 def positive_int(input):
     try:

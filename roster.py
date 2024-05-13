@@ -17,7 +17,8 @@ commandFuncs = {
     'changepos': rc.changepos,
     'release': rc.release,
     'autocut': rc.autocut,
-    'acceptto': rc.acceptto
+    'acceptto': rc.acceptto,
+    'nickname':rc.nickname
 }
 
 async def process_text(text, message):
@@ -26,19 +27,23 @@ async def process_text(text, message):
 
     season = export['gameAttributes']['season']
     teams = export['teams']
-    
-    userTid = serversList[str(message.guild.id)]['teamlist'][str(message.author.id)]
-
-    t = None
-    for team in teams:
-        if team['tid'] == userTid:
-            t = pull_info.tinfo(team)
-    if t == None:
-        t = pull_info.tgeneric(-1)
-
     command = str.lower(text[0])
-    embed = discord.Embed(title=t['name'] + ' Roster Management', description=f"{season} season", color=t['color'])
+    try:
     
+        userTid = serversList[str(message.guild.id)]['teamlist'][str(message.author.id)]
+
+        t = None
+        for team in teams:
+            if team['tid'] == userTid:
+                t = pull_info.tinfo(team)
+        if t == None:
+            t = pull_info.tgeneric(-1)
+
+        
+        embed = discord.Embed(title=t['name'] + ' Roster Management', description=f"{season} season", color=t['color'])
+    except KeyError:
+        embed = discord.Embed(title="No team" + ' Roster Management', description=f"{season} season")
+
     #see if user is affiliated with a team
     teamList = serversList[str(message.guild.id)]['teamlist']
     try:
@@ -47,10 +52,9 @@ async def process_text(text, message):
         userTeam = -1
     if userTeam == -1:
         embed.add_field(name='Error', value="You don't seem to be assigned as a GM of a team.")
-    else:
+    if True:
 
         commandInfo = {
-            "userTid": userTid,
             "serverId": str(message.guild.id),
             "userId": str(message.author.id),
             "userTid": userTeam,

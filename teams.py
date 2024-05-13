@@ -17,6 +17,7 @@ commandFuncs = {
     'progster': tc.roster,
     'proster': tc.roster,
     'lineup': tc.lineup,
+    'penalty':tc.penalty,
     'picks': tc.picks,
     'ownspicks': tc.ownspicks,
     'history': tc.history,

@@ -7,6 +7,7 @@ iscrowded = False
 with open('servers.json') as f:
     serversList = json.load(f)
     serversList['default'].update({'rfa':False})
+    serversList['default'].update({'tuodloh':10000})
     serversList['default'].update({'rfamultiplier':1.25})
 
 with open('books.json') as f:

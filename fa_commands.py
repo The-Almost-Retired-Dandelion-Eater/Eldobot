@@ -112,7 +112,7 @@ async def match(embed, text, commandInfo):
         embed.add_field(name = "Are you dumb?", value = "You are, cause you tried run match in a server that has not enabled rfa")
         return embed
     name = ' '.join(text[1:])
-    offerPlayer = basics.find_match(name, export, True)
+    offerPlayer = basics.find_match(name, export, True,settings =  shared_info.serversList[str(commandInfo['serverId'])])
     for p in export['players']:
         if p['pid'] == offerPlayer:
             offerPlayer = p
@@ -246,7 +246,7 @@ async def qo(embed, text, commandInfo):
 
 
     if validFormat:
-        offerPlayer = basics.find_match(name, export, True)
+        offerPlayer = basics.find_match(name, export, True,settings =  shared_info.serversList[str(commandInfo['serverId'])])
         #Qualifying offer conditions
         for p in export['players']:
            if int(p['pid']) == int(offerPlayer):
@@ -427,7 +427,7 @@ async def offer(embed, text, commandInfo):
                 minContract = export['gameAttributes']['minContract']/1000
                 offerText = f'{minContract}/1'
     if validFormat:
-        offerPlayer = basics.find_match(name, export, True)
+        offerPlayer = basics.find_match(name, export, True,settings =  shared_info.serversList[str(commandInfo['serverId'])])
         for p in export['players']:
             if p['pid'] == offerPlayer:
                 offerPlayer = pull_info.pinfo(p)
@@ -481,7 +481,11 @@ async def offer(embed, text, commandInfo):
                 holdoutLimit = float(serversList[commandInfo['serverId']]['holdout'])/100 * askingPrice
                 if amount < holdoutLimit:
                     embed.add_field(name='⚠️ Warning', value=f'This server currently has holdouts enabled, and your offer of ${amount}M falls below the holdout amount for this player of ${holdoutLimit}M. Feel free to keep this offer in case that limit changes or in case the asking price decreases, but it might be invalidated before FA is run.')
+                tuodlohLimit = float(serversList[commandInfo['serverId']]['tuodloh'])/100 * askingPrice
+                if amount > tuodlohLimit and tuodlohLimit > 0:
+                    embed.add_field(name='⚠️ Warning', value=f'This server currently has tuodloh limits enabled, and your offer of ${amount}M falls above the tuodloh amount for this player of ${tuodlohLimit}M. Feel free to keep this offer in case that limit changes or in case the asking price decreases, but it might be invalidated before FA is run.')
                     
+                
                 
 
             #now specific validity checks
@@ -674,7 +678,7 @@ async def deloffer(embed, text, commandInfo):
     offerList = serversList[commandInfo['serverId']]['offers']
     export = shared_info.serverExports[commandInfo['serverId']]
     playerToDelete = ' '.join(text[1:])
-    playerToDelete = basics.find_match(playerToDelete, export)
+    playerToDelete = basics.find_match(playerToDelete, export,settings =  shared_info.serversList[str(commandInfo['serverId'])])
     toDelete = []
     for p in export['players']:
             if p['pid'] == playerToDelete:
@@ -716,7 +720,7 @@ async def move(embed, text, commandInfo):
     export = shared_info.serverExports[commandInfo['serverId']]
     playerToMove = ' '.join(text[1:-1])
     print(playerToMove)
-    playerToMove = basics.find_match(playerToMove, export)
+    playerToMove = basics.find_match(playerToMove, export,settings =  shared_info.serversList[str(commandInfo['serverId'])])
     newPriority = text[-1]
     try: newPriority = int(text[-1])
     except: 
@@ -1161,7 +1165,7 @@ async def resignings(embed, text, commandInfo):
 
 
     else:
-        pid = basics.find_match(' ' + ' '.join(text[1:]), export, True)
+        pid = basics.find_match(' ' + ' '.join(text[1:]), export, True,settings =  shared_info.serversList[str(commandInfo['serverId'])])
         for p in players:
             if p['pid'] == pid:
                 if [p['pid'], p['ratings'][-1]['ovr'] + p['ratings'][-1]['pot']] in teamResigns:

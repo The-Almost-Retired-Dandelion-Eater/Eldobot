@@ -331,11 +331,12 @@ def reprog(embed, commandInfo):
     ratingslist = ["stre","jmp","endu","spd","ins","reb","pss","fg","tp","ft","dnk","drb","oiq","diq"]
     for p in export['players']:
         if p['retiredYear'] is None:
-            if p['draft']['year'] < export['gameAttributes']['season']:
+            if p['draft']['year'] < export['gameAttributes']['season'] and len(p['ratings']) > 1:
                 age = max(min(export['gameAttributes']['season'] - 1 - p['born']['year'],37),19)
                 truevar = variance * 10/(age-10)
                 pvar = np.random.normal(0,np.sqrt(truevar))
                 pratings = p['ratings']
+
                 base = pratings[-2]
                 current = pratings[-1]
                 if p['pid'] == 637:
@@ -348,7 +349,7 @@ def reprog(embed, commandInfo):
                     yboost = 0
                     if age < 29:
                         yboost = 0.25
-                    if age < 23:
+                    if age < 25:
                        yboost = 0.5
                     if age > 27 and age < 31:
                         yboost += 0.5

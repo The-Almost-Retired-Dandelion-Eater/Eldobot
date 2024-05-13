@@ -17,7 +17,7 @@ async def lmove(embed, text, commandInfo):
     teams = export['teams']
     #findPlayer
     player = ' '.join(text[1:-1])
-    player = basics.find_match(player, export, False, True)
+    player = basics.find_match(player, export, False, True,settings =  shared_info.serversList[str(commandInfo['serverId'])])
     #moveTo
     try:
         moveTo = int(text[-1])
@@ -84,6 +84,81 @@ async def lmove(embed, text, commandInfo):
         path_to_file = os.path.join(current_dir, "exports", f"{commandInfo['serverId']}-export.json")
         await basics.save_db(export, path_to_file)
     return embed
+async def nickname(embed, text, commandInfo):
+    embed = discord.Embed(title='Nicknames', description="The second dumbest feature in the bot (trailing only -mostaverage)")
+   
+    export = shared_info.serverExports[str(commandInfo['serverId'])]
+    players = export['players']
+    teams = export['teams']
+    settings = shared_info.serversList[str(commandInfo['serverId'])]
+    if "nickname" not in settings:
+        nicks = dict()
+    else:
+        nicks = settings['nickname']
+    tid = commandInfo['userTid']
+    if len(commandInfo['message'].content.split(" ")) == 1:
+        embed.add_field(name = "Please say one of the following", value = "View\nAdd\nRemove")
+        return embed
+    if commandInfo['message'].content.split(" ")[1] == "add":
+        
+        if not commandInfo['message'].content.__contains__(":"):
+            embed.add_field(name = "Please do -nickname add Kobe Bryant: The Black Mamba", value = "Well, now that there's space for it, let's do another example....how about: \n-nickname add LeBron James: LeMickey")
+            return embed
+        print("got here once")
+        pname = " ".join(commandInfo['message'].content.split(":")[0].split(" ")[2:])
+        nname =commandInfo['message'].content.split(":")[1].strip()
+        player = basics.find_match(pname, export, False, True)
+        print(player)
+        for p in players:
+            if p['pid'] == player:
+                if p['tid'] == -2 or p['tid'] == tid:
+                    print("got here")
+                    if len(nname) == 0: 
+                        embed.add_field(name = "The emptyness of my soul...", value = "can still not yet be compared to the emptiness of the nickname you provided.")
+
+                    else:
+                        
+                        isunique = True
+                        for item, value in nicks.items():
+                            if value.lower().strip() == nname.lower().strip() and item != str(p['pid']):
+                                isunique = False
+                                for p2 in players:
+                                    if p2['pid'] == int(item):
+                                        embed.add_field(name = "non unique", value = "for player "+p2['firstName']+" "+p2['lastName'])
+                        if isunique:
+                            nicks.update({str(p['pid']):nname})
+                            settings.update({"nickname":nicks})
+                            embed.add_field(name = "Nicknames", value = "Added nickname "+nname+" for player "+p['firstName']+" "+p['lastName'])
+                            await basics.save_db(serversList)
+                else:
+                    embed.add_field(name = "Can't add a nickname for a guy not on your team", value = "for player "+p['firstName']+" "+p['lastName'])
+    elif commandInfo['message'].content.split(" ")[1] == "view":
+        s = ""
+        for p in players:
+            if str(p['pid']) in nicks:
+                s = s + "**"+p['firstName']+" "+p['lastName']+"**: "+nicks[str(p['pid'])]+"\n"
+        embed.add_field(name = "Nicknames", value = s)
+    elif commandInfo['message'].content.split(" ")[1] == "remove":
+        pname = " .".join(commandInfo['message'].content.split(" ")[2:])
+        player = basics.find_match(pname, export, False, True)
+        for p in players:
+            if p['pid'] == player:
+                if p['tid'] == -2 or p['tid'] == tid:
+                    has =  False
+                    for n in nicks:
+                        if n == str(p['pid']):
+                            has = True
+                    if has:
+                        del nicks[str(p['pid'])]
+                        embed.add_field(name = "Removed nickname for "+p['firstName']+" "+p['lastName'], value = "their nickname is now gone.")
+                        await basics.save_db(serversList)
+                else:
+                     embed.add_field(name = "Can't remove nickname for a guy not on your team", value = "for player "+p['firstName']+" "+p['lastName'])
+                    
+    else:
+        embed.add_field(name = "Please say one of the following", value = "View\nAdd\nRemove")
+    
+    return embed
 
 async def pt(embed, text, commandInfo):
     export = shared_info.serverExports[str(commandInfo['serverId'])]
@@ -91,7 +166,7 @@ async def pt(embed, text, commandInfo):
     teams = export['teams']
     #findPlayer
     player = ' '.join(text[1:-1])
-    player = basics.find_match(player, export, False, True)
+    player = basics.find_match(player, export, False, True, settings =  shared_info.serversList[str(commandInfo['serverId'])])
     #the ptMod
     ptMods = ['+', '++', '-', '0', 'none', 'default']
     commandPt = text[-1]
@@ -193,7 +268,7 @@ async def changepos(embed, text, commandInfo):
     teams = export['teams']
     #findPlayer
     player = ' '.join(text[1:-1])
-    player = basics.find_match(player, export, False, True)
+    player = basics.find_match(player, export, False, True,settings =  shared_info.serversList[str(commandInfo['serverId'])])
     #position
     positions = ['PG', 'G', 'SG', 'GF', 'SF', 'F', 'PF', 'FC', 'C']
     if str.upper(text[-1]) in positions:
@@ -220,7 +295,7 @@ async def acceptto(embed, text, commandInfo):
     serverSettings = shared_info.serversList[str(commandInfo['serverId'])]
     #findPlayer
     player = ' '.join(text[1:])
-    player = basics.find_match(player, export, False, True)
+    player = basics.find_match(player, export, False, True,settings =  shared_info.serversList[str(commandInfo['serverId'])])
     for p in players:
         if p['pid'] == player:
             name = f"{p['firstName']} {p['lastName']}"
@@ -366,7 +441,7 @@ async def release(embed, text, commandInfo):
     serverSettings = shared_info.serversList[str(commandInfo['serverId'])]
     #findPlayer
     player = ' '.join(text[1:])
-    player = basics.find_match(player, export, False, True)
+    player = basics.find_match(player, export, False, True,settings =  shared_info.serversList[str(commandInfo['serverId'])])
     for p in players:
         if p['pid'] == player:
             name = f"{p['firstName']} {p['lastName']}"

@@ -6,7 +6,11 @@ import basics
 import discord
 import random
 import plotly_express as px
-
+def penalty(embed, t, commandInfo):
+    export = shared_info.serverExports[str(commandInfo['serverId'])]
+    tp = pull_info.trade_penalty(t['tid'], export)
+    embed.add_field(name = str(tp), value = "This team's trade penalty is "+str(tp))
+    return embed
 def capspace(embed, t, commandInfo):
     export = shared_info.serverExports[str(commandInfo['serverId'])]
     players = export['players']

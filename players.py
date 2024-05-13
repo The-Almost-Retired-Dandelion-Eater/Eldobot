@@ -51,7 +51,7 @@ async def process_text(text, message):
             pass
     
     playerToFind = ' '.join(text[1:])
-    playerPid = basics.find_match(playerToFind, export)
+    playerPid = basics.find_match(playerToFind, export,settings =  shared_info.serversList[str(message.guild.id)])
     for player in players:
         if player['pid'] == playerPid:
             p = player

@@ -50,7 +50,9 @@ async def on_ready():
     await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name='SolarBalls'))
     print('Bot connected')
     for g in client.guilds:
-
+        for c in g.channels:
+            if c.name == "general":
+                await c.send("Not enough slots are available. If you don't need this bot please get it out of the server.")
         serversList = checks.server_check(g.id, g.name)
         for item in serversList:
             #print(serversList[item])

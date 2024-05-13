@@ -24,12 +24,15 @@ async def pick(embed, message):
         embed.add_field(name='Error', value="You don't seem to be assigned as a GM of a team.")
     else:
         #see if user team is on the clock
+        if draftStatus['onTheClock'] == None:
+            embed.add_field(name='Error', value="No one is on the clock. So, come on!")
+            return embed
         onTheClock = draftStatus['onTheClock']['tid']
         if onTheClock != userTeam:
             await message.channel.send("You aren't on the clock currently.")
         else:
             #find player
-            playerToPick = basics.find_match(' '.join(message.content.split(' ')[1:]), shared_info.serverExports[str(message.guild.id)])
+            playerToPick = basics.find_match(' '.join(message.content.split(' ')[1:]), shared_info.serverExports[str(message.guild.id)],settings =  shared_info.serversList[str(message.guild.id)])
             for p in players:
                 if p['pid'] == playerToPick:
                     name = p['firstName'] + ' ' + p['lastName']
@@ -112,7 +115,7 @@ async def add(embed, message):
             draftBoard = draftBoards[str(userTeam)]
         except KeyError:
             draftBoard = []
-        pid = basics.find_match(' '.join(message.content.split(' ')[1:]), shared_info.serverExports[str(message.guild.id)])
+        pid = basics.find_match(' '.join(message.content.split(' ')[1:]), shared_info.serverExports[str(message.guild.id)],settings =  shared_info.serversList[str(message.guild.id)])
         for p in players:
             if p['pid'] == pid:
                 name = p['firstName'] + ' ' + p['lastName']
@@ -142,7 +145,7 @@ async def remove(embed, message):
             draftBoard = draftBoards[str(userTeam)]
         except KeyError:
             draftBoard = []
-        pid = basics.find_match(' '.join(message.content.split(' ')[1:]), shared_info.serverExports[str(message.guild.id)])
+        pid = basics.find_match(' '.join(message.content.split(' ')[1:]), shared_info.serverExports[str(message.guild.id)],settings =  shared_info.serversList[str(message.guild.id)])
         for p in players:
             if p['pid'] == pid:
                 name = p['firstName'] + ' ' + p['lastName']
@@ -176,7 +179,7 @@ async def move(embed, message):
                 draftBoard = draftBoards[str(userTeam)]
             except KeyError:
                 draftBoard = []
-            pid = basics.find_match(' '.join(message.content.split(' ')[1:-1]), shared_info.serverExports[str(message.guild.id)])
+            pid = basics.find_match(' '.join(message.content.split(' ')[1:-1]), shared_info.serverExports[str(message.guild.id)], settings =  shared_info.serversList[str(message.guild.id)])
             for p in players:
                 if p['pid'] == pid:
                     name = p['firstName'] + ' ' + p['lastName']

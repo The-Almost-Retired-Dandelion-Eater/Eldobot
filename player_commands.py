@@ -357,7 +357,13 @@ def bio(embed, player, commandInfo):
                 
                     
     h = random.sample(["Left","Right","Right","Right"],1)[0]
-    embed.add_field(name = "Facts", value = "Favorite Color: "+col+"\n Favorite Food: "+food+"\n Idol: "+idol+"\n Handedness: "+h)
+    nname = "None"
+    if "nickname" in shared_info.serversList[str(commandInfo['id'])]:
+        nicks = shared_info.serversList[str(commandInfo['id'])]['nickname']
+        
+        if str(p['pid']) in nicks:
+            nname = nicks[str(p['pid'])]
+    embed.add_field(name = "Facts", value = "Favorite Color: "+col+"\n Favorite Food: "+food+"\n Idol: "+idol+"\n Handedness: "+h + "\n Nickname: "+nname)
     
     
         
@@ -423,8 +429,8 @@ def pcompare(embed, player, commandInfo):
     first = first.replace(str(fyear),"").replace("playoff","")
     second = second.replace(str(syear),"").replace("playoff","")
     # obtain player names
-    fp = basics.find_match(first, export)
-    sp = basics.find_match(second, export)
+    fp = basics.find_match(first, export,settings =  shared_info.serversList[str(commandInfo['id'])])
+    sp = basics.find_match(second, export,settings =  shared_info.serversList[str(commandInfo['id'])])
     for p in export['players']:
         if p['pid'] == fp:
             fplayer = p

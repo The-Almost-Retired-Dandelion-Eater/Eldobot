@@ -195,7 +195,7 @@ def dailyclaim(embed, author, commandInfo):
     f.close()
     return embed
 def resetdaily(embed, author, commandInfo):
-    if not author.id == 1020519991512158210:
+    if not (author.id == 1020519991512158210 or author.id == 1097659721562980404):
         embed.add_field(name = "Daily",value = "Daily can only be reset with the approval of Illusion himself.")
         return embed
     daily.update({'members':[]})

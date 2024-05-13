@@ -212,10 +212,17 @@ async def validitytest(o,p,players,season,invalidations,signings,export,serverSe
         #HOLDOUTS
         holdoutMultiplier = float(serverSettings['holdout'])/100
         holdoutAmount = holdoutMultiplier*p['contract']['amount']
+        tuodlohMultiplier = float(serverSettings['tuodloh'])/100
+        tuodlohAmount = tuodlohMultiplier*p['contract']['amount']
 
         if o['amount'] < holdoutAmount*0.001:
             valid = False
             message = f"{playerName}'s offer from the {teamName} invalidated due to holdout threshold."
+            if len(invalidations) < 50:
+                invalidations.append(message)
+        if o['amount'] > tuodlohAmount*0.001 and not tuodlohAmount < 0.00001:
+            valid = False
+            message = f"{playerName}'s offer from the {teamName} invalidated due to tuodloh threshold."
             if len(invalidations) < 50:
                 invalidations.append(message)
         return [valid, invalidations]

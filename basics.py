@@ -229,7 +229,7 @@ async def load_export(text, message):
     loop = asyncio.get_event_loop()
     await loop.create_task(load_export_content(text, message))
 
-def find_match(input, export, fa=False, activeOnly=False):
+def find_match(input, export, fa=False, activeOnly=False, settings = None):
     bestMatch = 0
     players = export['players']
     for p in players:
@@ -265,6 +265,11 @@ def find_match(input, export, fa=False, activeOnly=False):
         if matchScore > bestMatch:
             bestMatch = matchScore
             winningPlayer = p['pid']
+    if settings is not None:
+        if 'nickname' in settings:
+            for a, b in settings['nickname'].items():
+                if b.lower().strip() == input.lower().strip():
+                    winningPlayer = int(a)
     return winningPlayer
 
 def group_numbers(numbers):
