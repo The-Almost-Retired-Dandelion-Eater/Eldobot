@@ -126,6 +126,7 @@ commandsRaw = {
     'resetdaily':'points',
     'globalleaders':'points',
     'lottery':'points',
+    'mostunbalanced':'league',
     'lotterypool':'points',
     'chatgpt':'points',
     'proggraph':'players',

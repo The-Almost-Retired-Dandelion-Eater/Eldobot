@@ -25,6 +25,7 @@ commandFuncs = {
     'leaders': league_commands.leaders,
     'summary': league_commands.summary,
     'leaguegraph':league_commands.leaguegraph,
+    'mostunbalanced':league_commands.mostunbalanced,
     'lgoptions':league_commands.lgoptions,
     'topall':league_commands.topall,
     'standings':league_commands.standings,

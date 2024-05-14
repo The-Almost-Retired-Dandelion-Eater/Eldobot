@@ -420,6 +420,58 @@ def mostaverage(embed, commandInfo):
     embed.add_field(name = title, value = string)
     return embed
 
+
+def mostunbalanced(embed, commandInfo):
+    export = shared_info.serverExports[str(commandInfo['serverId'])]
+    if commandInfo['message'].content.__contains__("mostuniform"):
+        return mostuniform(embed, commandInfo)
+    
+    timewarp = commandInfo['message'].content.split(" ")
+    year = -1000
+    listofdevs = []
+    if len(timewarp)>1:
+        year = int(timewarp[1])
+    for p in export['players']:
+        rates = p['ratings']
+        priorminimum = 0
+        pname = p['firstName'].strip() + " " + p['lastName'].strip()
+        for rts in rates:
+                
+            if year == -1000 or rts.get("season") == year:
+                    
+                #print(rts)
+                ratingslist = ["hgt","dnk","oiq","stre","ins","diq","spd","ft","drb","jmp","pss","fg","endu","tp","reb"]
+                ratingslist2 = []
+                totdeviation = 0
+                tot = 0
+                for name in ratingslist:
+                    tot += rts.get(name)
+                avg = tot/15
+                for name in ratingslist:
+                    ratingslist2.append(rts.get(name))
+                    deviation = rts.get(name)-avg
+                    if deviation<0:
+                        deviation = -deviation
+                    totdeviation += deviation
+                szn = rts.get("season")
+                if totdeviation>priorminimum:
+                    for item1 in listofdevs:
+                        if item1[0]==pname:
+                            listofdevs.remove(item1)
+                    listofdevs.append([pname,totdeviation,szn,avg])
+                    priorminimum = totdeviation
+                            
+                        
+                    #print(listofdevs[-1])
+        #print(listofdevs)
+    title = "Least Balanced Players: \n"
+    string = ""
+    tenlargest = sorted(listofdevs, key = lambda i:i[1], reverse = True)[0:10]
+    for item in tenlargest:
+        string = string+(str(round(item[2],2))+" "+item[0]+", Deviation of "+str(round(item[1],2))+"\n"+" from average of "+str(round(item[3],1))+"\n")
+    embed.add_field(name = title, value = string)
+    return embed
+
 def playoffs(embed, commandInfo):
     export = shared_info.serverExports[str(commandInfo['serverId'])]
     playoffs = export['playoffSeries']
