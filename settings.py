@@ -32,7 +32,7 @@ async def main_prompt(message):
     prefix = serversList[str(message.guild.id)]['prefix']
     serverName = message.guild.name
     serverSettings = shared_info.serversList[str(message.guild.id)]
-    embed = discord.Embed(title="ClevelandBot Settings", description=f"Settings for server {serverName}." + "\n \n" + '**Specify a category of settings to see more. Categories are: draft, fa, league, and trade.**')
+    embed = discord.Embed(title="EldoBot Settings", description=f"Settings for server {serverName}." + "\n \n" + '**Specify a category of settings to see more. Categories are: draft, fa, league, and trade.**')
     embed.add_field(name='General', value='**Prefix:** ' + serverSettings['prefix'] + '\n' + f'*Edit with {prefix}edit [prefix]*' + '\n' +f"**Trade Confirmation Channel:** {serverSettings['tradechannel']}" + '\n' + '*Trade confirmations should be sent here. Edit with -edit tradechannel [new channel].*' + '\n' 
                     f"**FA Channel:** {serverSettings['fachannel']}" + '\n' + '*FA signings will be sent here. Edit with -edit fachannel [new channel].*' + '\n' +
                     f"**Release Announcement Channel:** {serverSettings['releasechannel']}" + '\n' + '*Releases will be sent here. Edit with -edit releasechannel [new channel].*' + '\n'
@@ -44,7 +44,7 @@ async def fa_prompt(message):
     prefix = serversList[str(message.guild.id)]['prefix']
     serverName = message.guild.name
     serverSettings = shared_info.serversList[str(message.guild.id)]
-    embed = discord.Embed(title="ClevelandBot Settings - Free Agency", description=f"FA Settings for server {serverName}")
+    embed = discord.Embed(title="EldoBot Settings - Free Agency", description=f"FA Settings for server {serverName}")
     embed.add_field(name='FA Settings', value=('***Note:** Some settings are pulled directly from the server export file, such as the minimum roster, the salary cap, and the hard cap (your in-game "luxury tax threshold" is viewed by ClevelandBot as the hard cap).*' + '\n' + '\n'
                     + f"**__Max Roster:__** ``{serverSettings['maxroster']}``" + '\n' + f"*Teams can not sign players once they have reached this threshold. Edit with {prefix}edit maxroster [new value].*" + '\n'
                     + f"**__Holdout %:__** ``{serverSettings['holdout']}%``" + '\n' + f"*If a contract is below {serverSettings['holdout']}% of a player's asking price, they will decline to sign that offer. Edit with {prefix}edit holdout [new %].*" + '\n'
@@ -63,7 +63,7 @@ async def trade_prompt(message):
     prefix = serversList[str(message.guild.id)]['prefix']
     serverName = message.guild.name
     serverSettings = shared_info.serversList[str(message.guild.id)]
-    embed = discord.Embed(title="ClevelandBot Settings - Trades", description=f"Trade Settings for server {serverName}")
+    embed = discord.Embed(title="EldoBot Settings - Trades", description=f"Trade Settings for server {serverName}")
     embed.add_field(name='Trade Settings', value=f"**__Trade Channel:__** {serverSettings['tradechannel']}" + '\n' + f"*This channel will be scanned constantly for trades - all trades should be sent here.. Regular commands will not run in this channel. Edit with {prefix}edit tradechannel [#new channel].*" + '\n'
                     + f"**__Team Can Trade for Player Back Within the Same Season:__** ``{serverSettings['tradeback']}``" + '\n' + f'*If off, teams can not trade for a player who they traded away earlier in the same season. Resets at preseason. Edit with {prefix}edit tradeback [on/off].*' + '\n'
                     + f"**__# of Games Before Trading Signed FA:__** ``{serverSettings['tradefa']}``" + '\n' + f"*Signed FAs must spend this number of days with their team before being eligible for trade. Edit with {prefix}edit tradefa [new number].*" + '\n')
@@ -73,7 +73,7 @@ async def league_prompt(message):
     prefix = serversList[str(message.guild.id)]['prefix']
     serverName = message.guild.name
     serverSettings = shared_info.serversList[str(message.guild.id)]
-    embed = discord.Embed(title="ClevelandBot Settings - League", description=f"General league settings, mostly relating to finances. **Many of these values are fixed according to what is in your export file. Some, however, can be edited.**")
+    embed = discord.Embed(title="EldoBot Settings - League", description=f"General league settings, mostly relating to finances. **Many of these values are fixed according to what is in your export file. Some, however, can be edited.**")
     embed.add_field(name='Finance Settings', value=f"**Salary Cap:** ${shared_info.serverExports[str(message.guild.id)]['gameAttributes']['salaryCap']/1000}M" + '\n' + '\n'
                     + f"**Hard Cap:** ${serverSettings['hardcap']}M" + '\n' + f'*Teams cannot surpass this payroll for any reason other than draft picks. Edit with {prefix}edit hardcap [new value].*' + '\n' + '\n'
                     + f"**Minimum Contract:** ${shared_info.serverExports[str(message.guild.id)]['gameAttributes']['minContract']/1000}M" + '\n' + f"**Maximum Contract:** ${shared_info.serverExports[str(message.guild.id)]['gameAttributes']['maxContract']/1000}M" + '\n' + '\n'
@@ -88,7 +88,7 @@ async def draft_prompt(message):
     prefix = serversList[str(message.guild.id)]['prefix']
     serverName = message.guild.name
     serverSettings = shared_info.serversList[str(message.guild.id)]
-    embed = discord.Embed(title="ClevelandBot Settings - Draft", description=f"Settings relating to the draft.")
+    embed = discord.Embed(title="EldoBot Settings - Draft", description=f"Settings relating to the draft.")
     embed.add_field(name='Clock Settings', value='Your clock times are set as:' + '\n' + f"``{serverSettings['draftclock']}``" + '\n' + f"Adjust this by using {prefix}edit draftclock [new value]. **You should provide a list of numbers separated by commas, and each number represents the number of seconds of the clock in that round.** Some examples:" + '\n' + f"• ``300,200,0`` - this sets the round one clock to 300 seconds, round two to 200 seconds, and the third round will be autopicked." + '\n' + f"• ``300,0`` - this sets the first round to 300 seconds, and the second round will be auto-picked." + '\n' + '\n' + 'If a value is not specified for a round, it defaults to a 3 minute clock, which is 180 seconds. Setting the time to 0 is perfectly fine and will use boards or formulas to make each pick.')
     await message.channel.send(embed=embed)
 

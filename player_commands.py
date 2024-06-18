@@ -730,21 +730,25 @@ def progs(embed, player, commandInfo):
 def hstats(embed, player, commandInfo):
     export = shared_info.serverExports[str(commandInfo['id'])]
     players = export['players']
+    playoffs = False
     teams = export['teams']
+    if commandInfo['message'].content.split(" ")[0].__contains__('phs') or commandInfo['message'].content.split(" ")[0].__contains__('phstats'):
+        playoffs = True
     lines = []
     for season in player['seasonsPlayed']:
         for p in players:
             if p['pid'] == player['pid']:
-                stats = pull_info.pstats(p, season)
-        teamText = '('
-        for tid in stats['teams']:
-            for t in teams:
-                if t['tid'] == tid:
-                    t = pull_info.tinfo(t, season)
-                    teamText += t['abbrev'] + '/'
-        teamText = teamText[:-1] + ')'
-        line = f"**{season}** {teamText} - {stats['pts']} pts, {stats['reb']} reb, {stats['ast']} ast, {stats['stl']} stl, {stats['blk']} blk, {stats['per']} PER"
-        lines.append(line)
+                stats = pull_info.pstats(p, season, playoffs)
+        if stats['gp'] > 0:
+            teamText = '('
+            for tid in stats['teams']:
+                for t in teams:
+                    if t['tid'] == tid:
+                        t = pull_info.tinfo(t, season)
+                        teamText += t['abbrev'] + '/'
+            teamText = teamText[:-1] + ')'
+            line = f"**{season}** {teamText} - {stats['pts']} pts, {stats['reb']} reb, {stats['ast']} ast, {stats['stl']} stl, {stats['blk']} blk, {stats['per']} PER"
+            lines.append(line)
     numDivs, rem = divmod(len(lines), 10)
     numDivs += 1
     for i in range(numDivs):
@@ -816,38 +820,53 @@ def compare(embed, player, commandInfo):
                     peakovr = item['ovr']
     page = commandInfo["season"]-player["born"]
     mindifference = 10000000
-    bestplayer = 0
-    bestseason = 0
-    bestindex = 0
-    index = 0
+    players2 = []
+
     for p in players:
         
         if not p["pid"] == trueplayer["pid"]:
+            if export['gameAttributes']['season'] > p['draft']['year']:
         
-            for r in p['ratings']:
-                dif = 0
-                for i in ["hgt","stre","endu","reb","drb","pss","oiq","diq","fg","ft","tp","ins","dnk","jmp","spd"]:
-                    dif += (r[i]-tocompare[i])**2
-                if dif < mindifference:
-                    mindifference = dif
-                    bestplayer = p["pid"]
-                    bestseason = r["season"]
-                    bestindex = index
-        index += 1
-    
-    resultingplayer =pull_info.pinfo(players[bestindex], season = bestseason)
+                for r in p['ratings']:
+                    age = r['season']-p['born']['year']
+                    if age == page:
+                        dif = 0
+                        for i in ["hgt","stre","endu","reb","drb","pss","oiq","diq","fg","ft","tp","ins","dnk","jmp","spd"]:
+                            if i in ["hgt","oiq","diq","stre","jmp","spd","drb","dnk","tp"]:
+                                dif += (r[i]-tocompare[i])**2
+                            else:
+                                dif += 0.5*(r[i]-tocompare[i])**2
+                        dif += 5*(r["ovr"]-tocompare["ovr"])**2
+                        players2.append((p,r['season'],dif,p['ratings'], p['born']['year']))
+    players2 = sorted(players2, key = lambda i: i[2])
 
-    if resultingplayer['tid'] >= 0:
-         t = pull_info.tinfo(teams[resultingplayer['tid']], bestseason)
-    else:
-         t = pull_info.tgeneric(resultingplayer['tid'])
-    s= str(resultingplayer["stats"]['pts'])+"pts, "+str(resultingplayer["stats"]['reb'])+"reb, "+str(resultingplayer["stats"]['ast'])+"ast, "+str(resultingplayer["stats"]['stl'])+"stl, "+str(resultingplayer["stats"]['blk'])+"blk"
-    if 'abbrev' in t:
-        text = str(bestseason)+" "+ resultingplayer["name"]+", "+str(bestseason-resultingplayer["born"])+" years old, "+str(resultingplayer["ovr"])+"/"+str(resultingplayer["pot"])+" ("+t["abbrev"]+")\n"+s
-    else:
-        text = str(bestseason)+" "+ resultingplayer["name"]+", "+str(bestseason-resultingplayer["born"])+" years old, "+str(resultingplayer["ovr"])+"/"+str(resultingplayer["pot"])+" ("+t["name"]+")\n"+s
+    for i in range (0,5):
+        resultingplayer = players2[i]
+        peakovr = 0
+        r = resultingplayer[3]
 
-    embed.add_field(name='Player Comparison', value=text, inline=False)
+
+        peakszn = r[0]['season']
+        peakpos = r[0]['pos']
+        for r in resultingplayer[3]:
+            if r['season']-resultingplayer[4]>= page:
+                if r['ovr'] > peakovr:
+                    peakovr = r['ovr']
+                    peakszn = r['season']
+                    peakpos = r['pos']
+            
+        resultingplayer =pull_info.pinfo(resultingplayer[0], season = peakszn)
+        if resultingplayer['tid'] >= 0:
+             t = pull_info.tinfo(teams[resultingplayer['tid']], peakszn)
+        else:
+             t = pull_info.tgeneric(resultingplayer['tid'])
+        s= str(resultingplayer["stats"]['pts'])+"pts, "+str(resultingplayer["stats"]['reb'])+"reb, "+str(resultingplayer["stats"]['ast'])+"ast, "+str(resultingplayer["stats"]['stl'])+"stl, "+str(resultingplayer["stats"]['blk'])+"blk, "+str(resultingplayer["stats"]['per'])+" PER"
+        if 'abbrev' in t:
+            text = str(peakszn)+" "+peakpos+" "+ resultingplayer["name"]+", "+str(peakszn-resultingplayer["born"])+" years old, "+str(resultingplayer["ovr"])+"/"+str(resultingplayer["pot"])+" ("+t["abbrev"]+")\n"+s
+        else:
+            text = str(peakszn)+" "+peakpos+" "+ resultingplayer["name"]+", "+str(peakszn-resultingplayer["born"])+" years old, "+str(resultingplayer["ovr"])+"/"+str(resultingplayer["pot"])+" ("+t["name"]+")\n"+s
+
+        embed.add_field(name='Player Comparison', value=text, inline=False)
     return embed
 def progschart(embed, player, commandInfo):
     

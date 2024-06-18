@@ -11,6 +11,9 @@ import os
 import subprocess
 from io import BytesIO
 import discord
+import gzip
+import shutil
+
 
 bot = shared_info.bot
 
@@ -199,7 +202,10 @@ async def load_export_content(text, message):
             try: 
                 async with aiohttp.ClientSession() as session:
                     async with session.get(url) as response:
-                        async with aiofiles.open(f'exports/{message.guild.id}-export.json', 'wb') as f:
+                        name = f'exports/{message.guild.id}-export.json'
+                        if ".gz" in url:
+                            name = f'exports/{message.guild.id}-export.gz'
+                        async with aiofiles.open(name, 'wb') as f:
                             while True:
                                 chunk = await response.content.read(1024)
                                 if not chunk:
@@ -207,8 +213,14 @@ async def load_export_content(text, message):
                                 await f.write(chunk)
                 if str(message.guild.id) in  shared_info.serverExports:
                     del shared_info.serverExports[str(message.guild.id)]
+                print("here")
                 async with aiofiles.open(f'exports/{message.guild.id}-export.json', 'r') as f:
+                    if ".gz" in url:
+                        with gzip.open(f'exports/{message.guild.id}-export.gz', 'rb') as f_in:
+                            with open(f'exports/{message.guild.id}-export.json', 'wb') as f_out:
+                                shutil.copyfileobj(f_in, f_out)
                     shared_info.serverExports[str(message.guild.id)]= json.loads(await f.read())
+                        
                 
                 #del(data)
                 #brief initialization on exports
@@ -237,10 +249,14 @@ def find_match(input, export, fa=False, activeOnly=False, settings = None):
         playerName = unidecode(p['firstName'] + ' ' + p['lastName'])
         matchScore = SequenceMatcher(a=str.lower(input), b=str.lower(playerName.replace('.', '')))
         matchScore = float(matchScore.ratio())
-        if p['ratings'][-1]['ovr'] > 50:
-            matchScore += (random.randint(7500,10000))/100000000 #random player if blank input
-        else:
-            matchScore += (random.randint(1,10000))/100000000 #random player if blank input
+        try:
+            if p['ratings'][-1]['ovr'] > 50:
+                matchScore += (random.randint(7500,10000))/100000000 #random player if blank input
+            else:
+                matchScore += (random.randint(1,10000))/100000000 #random player if blank input
+        except Exception:
+
+            matchScore += (random.randint(1,10000))/100000000
         if p['tid'] > -1 or p['tid'] == -2:
             matchScore += 0.1
             if export['gameAttributes']['phase'] == 5:

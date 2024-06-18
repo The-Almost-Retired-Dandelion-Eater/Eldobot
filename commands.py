@@ -16,6 +16,7 @@ import help
 commandsRaw = {
     "settings": 'settings',
     'playoffpredict':'league',
+    'specialists':'league',
     'mostaverage':'league',
     'shots':'players',
     'draftorder':'league',
@@ -127,6 +128,7 @@ commandsRaw = {
     'globalleaders':'points',
     'lottery':'points',
     'mostunbalanced':'league',
+    'pickvalue':'league',
     'lotterypool':'points',
     'chatgpt':'points',
     'proggraph':'players',

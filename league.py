@@ -14,10 +14,12 @@ import league_commands
 commandFuncs = {
     'fa': league_commands.fa,
     'draftorder':league_commands.draftorder,
+    'specialists':league_commands.specialists,
     'po':league_commands.po,
     'playoffpredict':league_commands.standingspredict,
     'draft': league_commands.draft,
     'pr': league_commands.pr,
+    'pickvalue':league_commands.pickvalue,
     'matchups': league_commands.matchups,
     'top': league_commands.top,
     'injuries': league_commands.injuries,
@@ -74,7 +76,12 @@ async def process_text(text, message):
         embed = commandFuncs[command](embed, commandInfo) #fill the embed with the specified function
         
         embed.set_footer(text=shared_info.embedFooter)
-        gc = ["leaguegraph"]
+        gc = ["leaguegraph",'pickvalue']
+        if command == "reprog" or command == 'stripnames':
+            current_dir = os.getcwd()
+            path_to_file = os.path.join(current_dir, "exports", f"{commandInfo['serverId']}-export.json")
+            await basics.save_db(export, path_to_file)
+        await message.channel.send(embed=embed)
         if command in gc:
             waswrong = False
             for field in embed.fields:
@@ -83,12 +90,8 @@ async def process_text(text, message):
             if not waswrong:
                 try:
                     f = open("third_figure.png",'rb')
-                    await message.channel.send("Roster graph", file = discord.File(f))
+                    await message.channel.send("Your graph", file = discord.File(f))
                     f.close()
                 except Exception:
                      await message.channel.send("There was some kind of mistake")
-        if command == "reprog" or command == 'stripnames':
-            current_dir = os.getcwd()
-            path_to_file = os.path.join(current_dir, "exports", f"{commandInfo['serverId']}-export.json")
-            await basics.save_db(export, path_to_file)
-        await message.channel.send(embed=embed)
+        

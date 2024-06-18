@@ -1010,7 +1010,7 @@ async def runfa(embed, text, commandInfo):
         path_to_file = os.path.join(current_dir, "exports", f"{commandInfo['serverId']}-export.json")
         await basics.save_db(export, path_to_file)
         await basics.save_db(serversList)
-        await confirmEmbed.edit(content='✅ **Signings sent! FA Complete.** Run -updateexport for a new link.')
+        await confirmEmbed.edit(content='✅ **Signings sent! FA Complete.** Run -updateexport for a new link. \nIf you are sure the signings were correctly done, **run -clearalloffers** to clear all the offers. They do not automatically clear.')
     
     return embed
 
@@ -1090,6 +1090,7 @@ async def resignings(embed, text, commandInfo):
     resigns = export['negotiations']
     teamResigns = []
     for r in resigns:
+        
         try:
             if r['tid'] == commandInfo['userTid'] and r['resigning'] == True:
                 for p in players:
@@ -1109,6 +1110,7 @@ async def resignings(embed, text, commandInfo):
         progressMessage = await commandInfo['message'].channel.send('Calculating re-signings prices...')
         numberAdded = 0
         for r, pr in teamResigns:
+            
             for p in players:
                 if p['pid'] == r:
                     numberAdded += 1
@@ -1227,6 +1229,7 @@ async def runresign(embed, text, commandInfo):
     if settings['phase'] == 7:
         pricesDb = {}
         for n in export['negotiations']:
+            print(n)
             pricesDb[str(n['pid'])] = await free_agency_runner.resign_prices(n['pid'], n['tid'], export, commandInfo['serverId'],  values)
         print("got here 2")
         for team in teams:

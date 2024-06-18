@@ -10,6 +10,7 @@ import discord
 from sklearn.linear_model import LinearRegression
 import plotly_express as px
 
+import pandas
 #LEAGUE COMMANDS
 
     
@@ -48,6 +49,93 @@ def gsos(export, tid):
     sos = oppWins / (oppWins+oppLoses)
     homediff = (home-road)/(home+road)
     return sos-0.1*homediff
+def specialists(embed, commandInfo):
+    export = shared_info.serverExports[str(commandInfo['serverId'])]
+    players = export['players']
+    message = commandInfo['message']
+    content = ""
+    if len(message.content.split(" ")) > 1:
+        content = message.content.split(" ",1)[1]
+    year = -100
+    if content[-4:].__contains__("1") or content[-4:].__contains__("2"):
+        year = int(content[-4:])
+        content = content[0:-4]
+    specialities = ["athleticism","rebounding","passing","defense","shooting","scoring", "pass+shoot", "agility","inside"]
+    abbrevs = ["ath","reb","pass","def","shot","sco", "p s", "agi","ins"]
+    index = -1
+    for item in range (0,len(specialities)):
+        
+        if content.strip().lower() == specialities[item] or content.strip().lower() == abbrevs[item]:
+            index = item
+    if index == -1:
+        embed.add_field( name = "Please specify a speciality. Specialities include "+str(specialities), value = "Abbreviations for these specialities (in order) are "+str(abbrevs))
+        
+        return embed
+    print(index)
+    specialratings = [["hgt","stre","endu","jmp","spd"],["hgt","reb","spd","jmp","stre"],["drb","pss"],["hgt","reb","diq","stre","jmp","spd"],["fg","ft","tp"],["fg","tp","ft","ins","dnk"],["pss","drb","tp","fg"],["spd","jmp"],["ins","dnk","hgt","stre"]]
+    weights = [[1,1,0.25,1,1],[1,2,0.25,0.25,0.25],[0.5,1],[0.25,0.25,1,0.25,0.5,0.5],[0.5,0.25,1],[0.75,0.5,1,1,1],[1,0.75,0.75,1],[1,1],[1,0.5,0.5,0.5]]
+    dictofrelevantratings = dict()
+    names = dict()
+    
+    for p in players:
+        number =0
+        ss = p['ratings']
+        for ratingseason in ss:
+            number += 1
+
+            ss = p['stats']
+            for elm in ss:
+                if elm.get("season") == ratingseason.get("season"):
+                    ratingseason.update({"tid":elm.get("tid")})
+            if ((year>-100 and ratingseason.get("season") == year) or year == -100) and ratingseason.get("ovr")>39.5:
+                dictofrelevantratings.update({str(number)+" "+str(p['pid']):ratingseason})
+                names.update({p['pid']:p['firstName']+" "+p['lastName']})
+            
+    array = []
+    for index2 in dictofrelevantratings.keys():
+        pid = int(index2.split(" ",1)[1])
+        rating = dictofrelevantratings.get(index2)
+        ovr = max(rating.get("ovr"),50)
+        specialscore = 0
+        for i in range(0,len(specialratings[index])):
+            specialscore = specialscore+rating.get(specialratings[index][i])*weights[index][i]
+        specialscore = specialscore/sum(weights[index])-ovr*0.5
+        shouldadd = True
+        for element in array:
+            #print(element)
+            if element[0] == pid and element[1] > specialscore:
+                shouldadd = False
+            
+                
+
+        if shouldadd:
+            for element in array:
+                if element[0] == pid:
+                    array.remove(element)
+            array.append([pid,specialscore,rating.get("season"), rating.get("ovr"),rating.get("pot"), rating.get("tid"), " ".join(rating.get('skills'))])
+    newlist = sorted(array, key = lambda i:i[1], reverse = True)
+    if len(newlist) > 20:
+        newlist = newlist[0:20]
+
+    
+    rank = 1
+    for item in newlist:
+        name = names[item[0]]
+        #print(item)
+        if item[5] == None:
+            abv = "N/A"
+        else:
+            for t in export['teams']:
+                if t['tid'] == item[5]:
+                    abv = t['abbrev']
+                    for s in t['seasons']:
+                        if s['season'] == item[2]:
+                            abv = s['abbrev']
+            
+        embed.add_field(name=str(rank)+": "+str(item[2])+" "+name,value=str(item[3])+"/"+str(item[4])+", "+item[6]+ ", "+abv)
+        rank += 1
+    return embed
+
 def standingspredict(embed,commandInfo):
     export = shared_info.serverExports[str(commandInfo['serverId'])]
     season = export['gameAttributes']['season']
@@ -310,6 +398,65 @@ def stripnames(embed, commandInfo):
     for p in players:
         p.update({'firstName':p['firstName'].strip()})
         p.update({'lastName':p['lastName'].strip()})
+    return embed
+def pickvalue(embed, commandInfo):
+    export = shared_info.serverExports[str(commandInfo['serverId'])]
+    startseason = export['gameAttributes']['startingSeason']-1
+    endseason = export['gameAttributes']['season'] - 10
+    if endseason < startseason:
+        embed.add_field(name = "Error", value = "Not enough data, play 10 seasons! losers")
+        return embed
+    pickstats = dict()
+    pickratings = dict()
+    for p in export['players']:
+        r = p['draft']['round']
+        pick = p['draft']['pick']
+        yr = p['draft']['year']
+        if yr >= startseason and yr <= endseason and r > 0:
+            s = str(r)+"-"+str(pick)
+            total = 0
+            for st in p['stats']:
+                if not st['playoffs']:
+                    total += st['ows']+st['dws']
+            maxovr = 0
+            for ra in p['ratings']:
+                if ra['ovr'] > maxovr:
+                    maxovr = ra['ovr']
+            if not s in pickstats:
+                pickstats.update({s:[]})
+            pickstats[s].append(total)
+            if not s in pickratings:
+                pickratings.update({s:[]})
+            pickratings[s].append(maxovr)
+
+    ms = ""
+    picks = []
+    wss = []
+    ratings = []
+    for pick in sorted(pickstats, key = lambda i: int(i.split("-")[0])*1000+int(i.split("-")[1])):
+        if len(pickstats[pick]) > 9:
+            picks.append(pick)
+            s = pickstats[pick]
+            r = pickratings[pick]
+            ratings.append(round(sum(r)/len(r),2))
+            wss.append(round(sum(s)/len(s),2))
+            ms += pick + " Avg WS: "+str(round(sum(s)/len(s),2))+", Avg Peak Ovr: "+str(round(sum(r)/len(r),2))+"\n"
+            if len(ms) > 980:
+                embed.add_field(name = "Pick values", value = ms)
+                ms = ""
+    if len(ms) > 0:
+        embed.add_field(name = "Pick values", value = ms)
+    df = pandas.DataFrame([wss,ratings], index=['win shares','peak rating'],columns = picks).transpose()
+    fig = px.line(df,labels = {"index":"Pick","value":"Peak Rating/WS"}, title = "Pick Value")
+    fig.update_layout(
+
+    yaxis=dict( # Here
+        range=[0,100] # Here
+    ) # Here
+    )
+    fig.write_image('third_figure.png')
+    
+
     return embed
 def reprog(embed, commandInfo):
     export = shared_info.serverExports[str(commandInfo['serverId'])]
@@ -664,7 +811,7 @@ def topall(embed, commandInfo):
             pass
     datatype = "rating"
     for item in t:
-        if item.lower() == "stat" or item.lower() in ["points","assists", "rebounds","threes","minutes","turnovers","blocks","steals"]:
+        if item.lower() == "stat" or item.lower() in ["points","assists", "rebounds","threes","minutes","turnovers","blocks","steals","double"]:
             datatype = "stat"
         if item.lower() == "awards":
             datatype = "award"
@@ -701,6 +848,8 @@ def topall(embed, commandInfo):
             print(item)
             if item.lower() in ["assists", "rebounds","threes","turnovers","blocks","steals", "minutes"]:
                 indicate = item.lower()
+        if "triple double" in commandInfo['message'].content.lower():
+            indicate = "triple double"
         plist = []
         for player in players:
             total = 0
@@ -721,6 +870,10 @@ def topall(embed, commandInfo):
                         if isinstance(s["blk"], int):
                         
                             total += s["blk"]
+                    if indicate == "triple double" or indicate == "triple doubles":
+                        if isinstance(s["td"], int):
+                        
+                            total += s["td"]
                     if indicate == "steals":
                         if isinstance(s["stl"], int):
                             total += s["stl"]

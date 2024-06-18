@@ -121,7 +121,7 @@ pointsScreen = {
 }
 
 helpScreens = {
-    'mods': {'commands': modScreen, 'description': "Commands mostly for moderators to manage the league. **In ClevelandBot, 'manage message' permissions are assumed to mean moderator status.**"},
+    'mods': {'commands': modScreen, 'description': "Commands mostly for moderators to manage the league. **In EldoBot, 'manage message' permissions are assumed to mean moderator status.**"},
     "players": {'commands': playerScreen, 'description': 'Provide a player name, and for most, you can optionally provide a season.'},
     "teams": {'commands': teamScreen, 'description': 'If no team given, this defaults to your assigned team, but you can specify any. Most support a past season.'},
     "league": {'commands': leagueScreen, 'description': 'General league commands. Some, but not all, will support a provided season.'},
@@ -156,7 +156,7 @@ async def process_text(text, message):
             for i in range(numDivs):
                 newLines = lines[(i*5):((i*5)+5)]
                 text = '\n'.join(newLines)
-                embed.add_field(name="ClevelandBot Help", value=text)
+                embed.add_field(name="EldoBot Help", value=text)
             await message.channel.send(embed=embed)
 
 

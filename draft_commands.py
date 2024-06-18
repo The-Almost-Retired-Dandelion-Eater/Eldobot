@@ -262,7 +262,7 @@ async def auto(embed, message):
         commands = ['formula', 'preset', 'remove']
         if str.lower(messageArgs[1]) not in commands:
             #show default screen
-            embed.add_field(name='Autodrafting Formula', value="When you don't have a draft board, or everyone on it has been selected, ClevelandBot will select the best player vailable, unless you specify preferences using an auto formula. This can be as complex or as simple as one wants, and to further streamline the process, preset formulas are included for you - no math required!" + '\n' + '\n' + f"Use ``{serversList[str(message.guild.id)]['prefix']}auto formula [your formula here]`` to set a formula - you can use the BBGM ratings as well as age, and all operations are allowed. ClevelandBot will calculate this value for every player on the board and select who scores the highest.")
+            embed.add_field(name='Autodrafting Formula', value="When you don't have a draft board, or everyone on it has been selected, this idiotic bot will select the best player vailable, unless you specify preferences using an auto formula. This can be as complex or as simple as one wants, and to further streamline the process, preset formulas are included for you - no math required!" + '\n' + '\n' + f"Use ``{serversList[str(message.guild.id)]['prefix']}auto formula [your formula here]`` to set a formula - you can use the BBGM ratings as well as age, and all operations are allowed. ClevelandBot will calculate this value for every player on the board and select who scores the highest.")
             embed.add_field(name='Presets', value="If you want to bypass the need to make a mathmatical formula, these presets are available:" + '\n' + '\n'
                             + '**__Prefer Height__**' + '\n' + '*Abbreviation: ph1, ph2, or ph3.*' + '\n'
                             + '**__Prefer Athletisism__**' + '\n' + '*Abbreviation: pa1, pa2, or pa3.*' + '\n'
@@ -413,16 +413,27 @@ async def bulkadd(embed, message):
         except KeyError:
             draftBoard = []
         bulkGroup = (' '.join(message.content.split(' ')[1:])).split('\n')
+        successes = ""
         for player in bulkGroup:
-            for p in players:
-                if p['firstName'] + ' ' + p['lastName'] == player:
-                    name = p['firstName'] + ' ' + p['lastName']
-                    thePlayer = p
-            if thePlayer['tid'] != -2 or thePlayer['draft']['year'] != season:
-                embed.add_field(name='Error', value=f"{name} is not an upcoming draft prospect.")
-            else:
-                draftBoard.append(thePlayer['pid'])
-                serversList[str(message.guild.id)]['draftBoards'][str(userTeam)] = draftBoard
+            if len(player) > 1:
+
+                thePlayer = basics.find_match(player,  shared_info.serverExports[str(message.guild.id)], settings =  shared_info.serversList[str(message.guild.id)])
+                print("finally")
+                for p2 in players:
+                    if p2['pid'] == thePlayer:
+                        thePlayer = p2
+                name = thePlayer['firstName']+" "+ thePlayer['lastName']
+                if thePlayer['tid'] != -2 or thePlayer['draft']['year'] != season:
+                    embed.add_field(name='Error', value=f"{name} is not an upcoming draft prospect.")
+                else:
+                    
+                    if not thePlayer['pid'] in draftBoard:
+                        if len(successes) > 0:
+                            successes += ", "+name
+                        else:
+                            successes = name
+                        draftBoard.append(thePlayer['pid'])
+                        serversList[str(message.guild.id)]['draftBoards'][str(userTeam)] = draftBoard
         await basics.save_db(serversList)
-        embed.add_field(name='Success', value=f"Everyone who doesn't have an error message has been added to your draft board.")
+        embed.add_field(name='Success', value=f"Everyone who doesn't have an error message has been added to your draft board. This includes \n"+successes)
     return embed

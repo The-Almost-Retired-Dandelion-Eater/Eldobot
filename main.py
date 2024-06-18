@@ -74,6 +74,8 @@ commandAliases = {
     "s": "stats",
     "b": "bio",
     "setgm": "addgm",
+    'phs':'hstats',
+    'phstats':'hstats',
     "ts": "tstats",
     "tsp": 'ptstats',
     "rs": "resignings",

@@ -66,6 +66,7 @@ async def offer_score(offer, serverId):
                         teamHype = ts[-1]['hype']
                     teamWinning = teamWinPercent*0.85 + teamHype*0.15
             winningScore = (0.5 + teamWinning)*offer['amount']
+            #print("winning score "+str(winningScore))
             #calculate fame score (50% hype, 50% rotation)
             #hype variable should be made already. if it's not, we've got other errors on our hands anyway, so may as well assume it's there
             #rotation calculation
@@ -82,18 +83,20 @@ async def offer_score(offer, serverId):
             if teamHype == -1000:
                 teamHype = 0
             fameScore = (fameScore*0.5 + (teamHype + 0.5)*0.5)*offer['amount']
+            #print("fame score "+str(fameScore))
             #calculate money score (80% money per year, 20% total money)
             moneyScore = 0.8*offer['amount'] + 0.2*(offer['amount']*offer['years'])
-
+            #print("money score "+str(moneyScore))
             #loyalty score (15% years with team prior, 85% trade penalty)
             yearsWith = 0
             for s in playerStats:
                 if 'tid' in s:
                     if s['tid'] == offer['team'] and s['playoffs'] == False:
                         yearsWith += 1
+            #print(yearsWith)
             penalty = pull_info.trade_penalty(offer['team'], serverExport)
-            loyalScore = (1 + (yearsWith/10))*0.15 + ((1 - penalty)*0.85)*offer['amount']
-
+            loyalScore = ((1 + (yearsWith/10))*0.15 + ((1 - penalty)*0.85))*offer['amount']
+            #print("loyal score "+str(loyalScore))
             #combine our scores into the final offer score
             loyalScore = loyalScore*playerLoyal
             winningScore = winningScore*playerWinning
@@ -819,7 +822,10 @@ async def resign_prices(playerId, teamId, serverExport, serverId, values):
             ## BUT we regenerate base prices based off of something
             ct = 0
 
-            criticalvalue = values[playerId]
+            if playerId in values:
+                criticalvalue = values[playerId]
+            else:
+                criticalvalue = 0
 
             for v in values.values():
                 if v < criticalvalue:
@@ -837,8 +843,6 @@ async def resign_prices(playerId, teamId, serverExport, serverId, values):
                 ratio = baseratio ** 3
                 basePricePre = ratio*big+(1-ratio)*small
                 basePricePre = round(round(basePricePre/1000,2)*1000,1)
-            print(basePrice)
-            print(basePricePre)
             if basePricePre < basePrice:
                 print("adjusted")
                 basePrice = basePricePre
