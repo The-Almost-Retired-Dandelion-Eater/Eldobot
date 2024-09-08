@@ -35,7 +35,22 @@ playerScreen = {
     'proggraph': 'Progressions graph',
     'progspredict': 'Graph of player projected progressions distribution.'
 }
-
+raftScreen = {
+    'start':'Gives you a one-time ticket to ownership of one raft to get you started',
+    "shop": 'shows all purchase-able items',
+    'recipes':'shows crafting recipes',
+    "buy": 'buys an item',
+    'sell':'sells an item for half of its buy price',
+    "use": 'uses an item. Such as: -use note @tarde Hi tarde!',
+    'inventory': 'shows your inventory',
+    'craft': 'crafts any object on the list of recipes. Example: -craft raft. Make sure you already have all required items',
+    'raft': 'Go for a sail on your raft. Buy a raft first with -buy raft',
+    'canoe': 'Go for a sail on your canoe. Craft a canoe first to use this, use -recipes to see what is needed',
+    'sailboat': 'Go for a sail on your sailboat. Craft a sailboat first to use this, use -recipes to see what is needed',
+    'steamboat':'Go for a ride on your steamboat. Craft a steamboat first to use this, yada yada.',
+    'battleship':'Go for a potentially battle-laden ride on your epic battleship.',
+    'decktree':'shows the users in order of technological accomplishment in seafaring.'
+}
 freeAgencyScreen = {
     'fa [optional: page number]': 'Shows free agents.',
     'offer [player name] [contract amount]/[contract length]': 'Offer a free agent.',
@@ -128,7 +143,8 @@ helpScreens = {
     "roster": {'commands': rosterScreen, 'description': 'Commands for managing your roster as a GM.'},
     "freeagency": {'commands': freeAgencyScreen, 'description': 'Commands for offering and managing free agent offers.'},
     'draft': {'commands': draftScreen, 'description': 'Commands for setting up your draft preferences.'},
-    'points': {'commands': pointsScreen, 'description': 'Commands for points system.'}
+    'points': {'commands': pointsScreen, 'description': 'Commands for points system.'},
+    'raft': {'commands': raftScreen, 'description': 'Commands for inventory/boats system.'}
 }
 
 async def process_text(text, message):

@@ -9,6 +9,62 @@ import asyncio
 import os
 import random
 import copy
+async def viewalloffers(embed, text, commandInfo):
+    message = commandInfo['message']
+    if shared_info.serversList[str(commandInfo['serverId'])]['openmarket'] == "off":
+        if not message.author.guild_permissions.manage_messages:
+            embed.add_field(name = "I can't give you offers, but I'll offer you an explanation", value = "open market is off and you don't have mod perms. Don't try to view all offers!")
+            return embed
+    export = shared_info.serverExports[commandInfo['serverId']]
+    
+    players = export['players']
+    teams = export['teams']
+    resultlist = []
+    playertouse = None
+    if "player:" in message.content:
+        pname = message.content.split(":")[1]
+        playertouse =  basics.find_match(pname, export, True,settings =  shared_info.serversList[str(commandInfo['serverId'])])
+    offerList = serversList[commandInfo['serverId']]['offers']
+    for offer in offerList:
+        if playertouse is None or offer['player'] == playertouse:
+            for p in players:
+                if p['pid'] == offer['player']:
+                    name = p['firstName']+' '+p['lastName']
+                    teamname = "idk"
+                    for t in teams:
+                        if str(t['tid']) == str(offer['team']):
+                            teamname = t['region']+" "+t['name']
+                    if offer['option'] != None:
+                        optionText = f", + {offer['option']}"
+                    else:
+                        optionText = ""
+                    text = f" {teamname} - Pri {offer['priority']} - {name}, ${offer['amount']}M/{offer['years']}Y {optionText}"
+                    resultlist.append((text,offer['team'],offer['priority'],name,offer['amount']))
+    
+    if "byamount" in message.content.lower():
+        resultlist = sorted(resultlist, key = lambda x: x[4], reverse = True)
+    elif "byteam" in message.content.lower():
+        resultlist = sorted(resultlist, key = lambda x: x[1]*100+x[2])
+    elif "byplayer" in message.content.lower():
+        resultlist = sorted(resultlist, key = lambda x: x[3])
+
+    if len(resultlist) == 0:
+        embed.add_field(name = "offers", value = "*No offers.*")
+        return embed
+    returntext = ""
+    for element in resultlist:
+        returntext += element[0] + "\n"
+        if len(returntext) > 1950:
+            toDm =shared_info.bot.get_user(int(message.author.id))
+            await toDm.send(returntext)
+            
+            returntext = ""
+    if len(returntext) > 0:
+        toDm =shared_info.bot.get_user(int(message.author.id))
+        await toDm.send(returntext)
+    embed.add_field(name = "Offers sent", value = "What else do you want me to say?!", inline = False)
+    return embed
+                
 async def decidepo(embed, text, commandInfo):
     export = shared_info.serverExports[commandInfo['serverId']]
     message = commandInfo['message']
@@ -428,6 +484,7 @@ async def offer(embed, text, commandInfo):
                 offerText = f'{minContract}/1'
     if validFormat:
         offerPlayer = basics.find_match(name, export, True,settings =  shared_info.serversList[str(commandInfo['serverId'])])
+
         for p in export['players']:
             if p['pid'] == offerPlayer:
                 offerPlayer = pull_info.pinfo(p)
@@ -524,6 +581,7 @@ async def offer(embed, text, commandInfo):
                     "priority": priority,
                     'qo':False
                 }
+
 
             optionText = ""
             if option != None:

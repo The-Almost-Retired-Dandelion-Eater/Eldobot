@@ -173,7 +173,7 @@ def stats(embed, player, commandInfo):
         effLine = f'*No stats available.*'
     else:
         statsLine = f"{s['pts']} pts, {s['orb'] + s['drb']} reb, {s['ast']} ast, {s['blk']} blk, {s['stl']} stl, {s['tov']} tov"
-        effLine = f"{str(s['gp']).replace('.0', '')} GP, {s['min']} MPG, {s['per']} PER, {s['fg']}% FG, {s['tp']} 3PT%, {s['ft']} FT%"
+        effLine = f"{str(s['gp']).replace('.0', '')} GP, {s['min']} MPG, {s['per']} PER, {s['fg']}% FG, {s['tp']} 3PT%, {s['ft']} FT%, {s['eFG%']} eFG%, {s['TS%']} TS%"
     embed.add_field(name=title+statsTeams, value=statsLine, inline=False)
     embed.add_field(name='Other', value=effLine, inline=False)
 
@@ -739,6 +739,7 @@ def hstats(embed, player, commandInfo):
         for p in players:
             if p['pid'] == player['pid']:
                 stats = pull_info.pstats(p, season, playoffs)
+
         if stats['gp'] > 0:
             teamText = '('
             for tid in stats['teams']:
@@ -1086,7 +1087,7 @@ def trivia(embed, player, commandInfo):
     embedresult  = discord.Embed(title="Trivia", description=d)
     export = shared_info.serverExports[str(commandInfo['id'])]
     players = export['players']
-    newcommandinfo = {'id':commandInfo['id']}
+    newcommandinfo = {'id':commandInfo['id'], 'message':commandInfo['message']}
     found = False
     track = 1
     while not found:

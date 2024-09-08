@@ -12,6 +12,8 @@ import team_commands as tc
 
 commandFuncs = {
     'roster': tc.roster,
+    'tcompare':tc.teamcompare,
+    'penalties':tc.penalties,
     'sroster': tc.roster,
     'psroster': tc.roster,
     'progster': tc.roster,
@@ -34,7 +36,6 @@ commandFuncs = {
     'rostergraph':tc.rostergraph,
     'rgoptions':tc.rgoptions
 }
-
 
 async def process_text(text, message):
     if message.author.id in triviabl or message.channel in triviabl.values():
@@ -111,7 +112,7 @@ async def process_text(text, message):
                 print(e) 
                 embed.add_field(name='Error', value="An error occured. Command may not be specified.", inline=False)
             
-            #add the bottom parts
+                        
             embed.set_footer(text=shared_info.embedFooter)
             gc = ["rostergraph"]
             if command in gc:
@@ -126,9 +127,22 @@ async def process_text(text, message):
                         f.close()
                     except Exception:
                          await message.channel.send("There was some kind of mistake")
-                        
+            backupembed = embed.copy()
+            if command in ['roster','sroster','lineup','progster','penalty','history','ownspicks','picks','tstats','ptstats','schedule','seasons','gamelog']:
+                # image
+                for team in teams:
+                    if team['tid'] == int(commandTid):
+                        u = team['imgURL']
+                        if u[0:4] == '/img':
+                            u = "https://github.com/The-Almost-Retired-Dandelion-Eater/Eldobot/blob/master/img/"+u.split("/")[-1].replace("svg","png")+"?raw=true"
+                        embed.set_thumbnail(url=u)
+                        print(u)
+                        #embed.set_thumbnail(url = u)
+
             await message.channel.send(embed=embed)
-            
+            #except Exception:
+              #  print("no image found")
+              #  await message.channel.send(embed=backupembed)
 
 
 

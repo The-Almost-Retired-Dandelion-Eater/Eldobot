@@ -15,6 +15,7 @@ import math
 import trade_functions
 import bible
 import gc
+import commandmaster
 from unidecode import unidecode
 
 points = shared_info.points
@@ -50,9 +51,6 @@ async def on_ready():
     await client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name='SolarBalls'))
     print('Bot connected')
     for g in client.guilds:
-        for c in g.channels:
-            if c.name == "general":
-                await c.send("Not enough slots are available. If you don't need this bot please get it out of the server.")
         serversList = checks.server_check(g.id, g.name)
         for item in serversList:
             #print(serversList[item])
@@ -61,6 +59,9 @@ async def on_ready():
                     serversList[item]['draftStatus'].update({'draftRunning':False})
 
         await basics.save_db(serversList)
+        if not str(g.id) in commandmaster.tracks:
+            print("leaviing "+g.name)
+            await g.leave()
         
 
 @client.event
@@ -69,27 +70,7 @@ async def on_guild_join(g):
     serversList = checks.server_check(g.id, g.name)
     await basics.save_db(serversList)
 
-commandAliases = {
-    "r": "ratings",
-    "s": "stats",
-    "b": "bio",
-    "setgm": "addgm",
-    'phs':'hstats',
-    'phstats':'hstats',
-    "ts": "tstats",
-    "tsp": 'ptstats',
-    "rs": "resignings",
-    "runrs": "runresignings",
-    "ppr":"playoffpredict",
-    "cs": "cstats",
-    "hs": "hstats",
-    'updateexport': 'updatexport',
-    "balance":"bal",
-    "gl":"globalleaders",
-    "l":"pleaders",
-    'lp':'lotterypool',
-    'mostuniform':'mostaverage'
-}
+commandAliases = shared_info.commandAliases
 
 #set up bible commands quickly
 
@@ -208,7 +189,7 @@ async def on_message(message):
                                     return
                         print("got to command")
 
-                        if not commands.commandsRaw[command] in ['points','settings']:
+                        if not commands.commandsRaw[command] in ['points','settings','inventory']:
                             shared_info.iscrowded = True
                             try:
                                 g = message.guild
@@ -236,7 +217,7 @@ async def on_message(message):
                                 await message.channel.send("You need an export to do this, but you don't have one.")
 
                         
-                        await commands.commands[command](text, message)
+                        await commandmaster.budubudu(command, text, message)
                         
       
                         

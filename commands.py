@@ -1,6 +1,7 @@
 import settings
 import settings_checks as sc
 import players
+import inventory
 import basics
 import moderators
 import free_agency
@@ -15,13 +16,16 @@ import help
 
 commandsRaw = {
     "settings": 'settings',
+    'tcompare':'team',
     'playoffpredict':'league',
+    'penalties':'team',
     'specialists':'league',
     'mostaverage':'league',
     'shots':'players',
     'draftorder':'league',
     'pshots':'players',
     'progspredict':'players',
+    'calls':'points',
     'penalty':'team',
     'standings':'league',
     "edit": 'settings',
@@ -73,6 +77,9 @@ commandsRaw = {
     'reprog':'league',
     'stripnames':'league',
     'resetgamestrade':'fa',
+    'mostused':'points',
+    'servers':'points',
+    'mostactive':'points',
     'sroster': 'team',
     'psroster': 'team',
     'lineup': 'team',
@@ -113,6 +120,7 @@ commandsRaw = {
     'awards': 'players',
     'pgamelog': 'players',
     'compare': 'players',
+    'count':'points',
     'release': 'roster',
     'autocut': 'roster',
     'pausedraft': 'draft',
@@ -139,7 +147,23 @@ commandsRaw = {
     'rostergraph':'team',
     'rgoptions':'team',
     'leaguegraph':'league',
-    'lgoptions':'league'
+    'lgoptions':'league',
+    'viewalloffers':'fa',
+    'inventory':'inventory',
+    'shop':'inventory',
+    'buy':'inventory',
+    'use':'inventory',
+    'raft':'inventory',
+    'recipes':'inventory',
+    'craft':'inventory',
+    'canoe':'inventory',
+    'sell':'inventory',
+    'sailboat':'inventory',
+    'start':'inventory',
+    'decktree':'inventory',
+    'steamboat':'inventory',
+    'battleship':'inventory'
+    
 }
 commandTypes = {
     'players': players.process_text,
@@ -154,7 +178,8 @@ commandTypes = {
     'team': teams.process_text,
     'updatexport': basics.update_export,
     'help': help.process_text,
-    'points': points.process_text
+    'points': points.process_text,
+    'inventory':inventory.process_text
 }
 commands = {}
 
@@ -169,7 +194,6 @@ settingsDirectory = {
     "maxroster": sc.positive_int,
     "birdrights": sc.onoff,
     "rookiescount": sc.onoff,
-
     "options": sc.onoff,
     "openmarket": sc.onoff,
     "threeyearrule": sc.onoff,
@@ -177,9 +201,11 @@ settingsDirectory = {
     "fame": sc.numbers,
     "loyalty": sc.numbers,
     "money": sc.numbers,
+    "idiosyncratic":sc.numbers,
     "fachannel": sc.channel,
     "tradechannel": sc.channel,
     "tradeannouncechannel": sc.channel,
+    
     "tradeback": sc.onoff,
     "tradefa": sc.nonnegative_int,
     "hardcap": sc.numbers,

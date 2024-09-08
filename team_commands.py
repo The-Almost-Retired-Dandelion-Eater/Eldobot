@@ -6,6 +6,26 @@ import basics
 import discord
 import random
 import plotly_express as px
+def penalties(embed, t, commandInfo):
+    export = shared_info.serverExports[str(commandInfo['serverId'])]
+    teams = export['teams']
+    pens = []
+    for t in teams:
+        tp = pull_info.trade_penalty(t['tid'], export)
+        name = t['region']+" "+t['name']
+        pens.append((name,tp))
+    s = ""
+    pens = sorted(pens, key = lambda x: x[1], reverse = True)
+    count = 0
+    for item in pens:
+        count += 1
+        s = s + "**"+item[0]+"**: "+str(round(item[1],3))+"\n"
+        if count % 10 == 0:
+            embed.add_field(name = "trade penalties", value = s)
+            s = ""
+    if len(s) > 0:
+        embed.add_field(name = "trade penalties", value = s)
+    return embed
 def penalty(embed, t, commandInfo):
     export = shared_info.serverExports[str(commandInfo['serverId'])]
     tp = pull_info.trade_penalty(t['tid'], export)
@@ -450,7 +470,216 @@ def ownspicks(embed, t, commandInfo):
     if overflow != "":
         embed.add_field(name='Continued', value=overflow, inline=False)
     return embed
+def teamcompare(embed, team, commandInfo):
+    message = commandInfo['message']
+    export = shared_info.serverExports[str(message.guild.id)]
+    season = export['gameAttributes']['season']
+    players = export['players']
+    teams = export['teams']
+    if not "," in commandInfo['message'].content:
+        return embed
+    a = commandInfo['message'].content.split(",")[0]
+    b = commandInfo['message'].content.split(",")[1]
+    # first team
+    commandSeasona = season
+    text = a.split(" ")
+    for m in text:
+        try:
+            m = int(m)
+            commandSeasona = m
+            text.remove(str(commandSeasona))
+        except:
+            pass
+    try: commandTida = serversList[str(message.guild.id)]['teamlist'][str(message.author.id)]
+    except KeyError: commandTida = -1
+    if commandSeasona != season:
+        for t in teams:
+            seasons = t['seasons']
+            for s in seasons:
+                if s['season'] == commandSeasona:
+                    teamNames = [s['abbrev'], s['region'], s['name'], s['region'] + ' ' + s['name']]
+                    for name in teamNames:
+                        if str.lower(name.strip()) in [str(m).lower() for m in text]:
+                            commandTida = t['tid']
+        if commandTida == -1:
+            for t in teams:
+                teamNames = [t['abbrev'], t['region'], t['name'], t['region'] + ' ' + t['name']]
+                for name in teamNames:
+                    if str.lower(name.strip()) in [str(m).lower() for m in text]:
+                        commandTida = t['tid']
+    else:
+        for t in teams:
+            teamNames = [t['abbrev'], t['region'], t['name'], t['region'] + ' ' + t['name']]
+            for name in teamNames:
 
+                if str.lower(name.strip()) in [str(m).lower() for m in text]:
+                    commandTida= t['tid']
+    # second team
+    commandSeasonb = season
+    text = b.split(" ")
+    for m in text:
+        try:
+            m = int(m)
+            commandSeasonb = m
+            text.remove(str(commandSeasonb))
+        except:
+            pass
+    try: commandTidb = serversList[str(message.guild.id)]['teamlist'][str(message.author.id)]
+    except KeyError: commandTidb = -1
+    if commandSeasonb != season:
+        for t in teams:
+            seasons = t['seasons']
+            for s in seasons:
+                if s['season'] == commandSeasonb:
+                    teamNames = [s['abbrev'], s['region'], s['name'], s['region'] + ' ' + s['name']]
+                    for name in teamNames:
+                        if str.lower(name.strip()) in [str(m).lower() for m in text]:
+                            commandTidb = t['tid']
+        if commandTidb == -1:
+            for t in teams:
+                teamNames = [t['abbrev'], t['region'], t['name'], t['region'] + ' ' + t['name']]
+                for name in teamNames:
+                    if str.lower(name.strip()) in [str(m).lower() for m in text]:
+                        commandTidb = t['tid']
+    else:
+        for t in teams:
+            teamNames = [t['abbrev'], t['region'], t['name'], t['region'] + ' ' + t['name']]
+            for name in teamNames:
+                if str.lower(name.strip()) in [str(m).lower() for m in text]:
+                    commandTidb= t['tid']
+    print(commandTida)
+    print(commandSeasona)
+    print(commandTidb)
+    print(commandSeasonb)
+    for t in teams:
+
+        if t['tid'] == commandTida:
+
+            ainfo = pull_info.tinfo(t,commandSeasona)
+            for s in t['seasons']:
+                if s['season'] == commandSeasona:
+                    aplayoffResult = pull_info.playoff_result(s['playoffRoundsWon'], export['gameAttributes']['numGamesPlayoffSeries'], s['season'], False)
+            for s in t['stats']:
+                if s['season'] == commandSeasona:
+                    print(s)
+                    if not ('playoffs' in s and s['playoffs']):
+                        astats = s
+            
+        if t['tid'] == commandTidb:
+            binfo = pull_info.tinfo(t,commandSeasonb)
+            for s in t['seasons']:
+                if s['season'] == commandSeasonb:
+                    bplayoffResult = pull_info.playoff_result(s['playoffRoundsWon'], export['gameAttributes']['numGamesPlayoffSeries'], s['season'], False)
+            for s in t['stats']:
+                if s['season'] == commandSeasonb:
+                    if not ('playoffs' in s and s['playoffs']):
+                        bstats = s
+    print(astats)
+    astatssum = {'Points':astats['pts']/astats['gp'],"FG%":astats['fg']*100/astats['fga'],"TP%":astats['tp']*100/astats['tpa'],'Rebounds':(astats['orb']+astats['drb'])/astats['gp'],
+                 'Assists':astats['ast']/astats['gp'],'Steals':astats['stl']/astats['gp'],'Blocks':astats['blk']/astats['gp'],'Turnovers':astats['tov']/astats['gp'],'Opp. Points':astats['oppPts']/astats['gp'],
+                 "Opp. FG%":astats['oppFg']*100/astats['oppFga'],"Opp. TP%":astats['oppTp']*100/astats['oppTpa'],'Opp. Rebounds':(astats['oppOrb']+astats['oppDrb'])/astats['gp'],
+                 'Opp. Assists':astats['oppAst']/astats['gp'],'Opp. Steals':astats['oppStl']/astats['gp'],'Opp. Blocks':astats['oppBlk']/astats['gp'],'Opp. Turnovers':astats['oppTov']/astats['gp']}
+    bstatssum = {'Points':bstats['pts']/bstats['gp'],"FG%":bstats['fg']*100/bstats['fga'],"TP%":bstats['tp']*100/bstats['tpa'],'Rebounds':(bstats['orb']+bstats['drb'])/bstats['gp'],
+                 'Assists':bstats['ast']/bstats['gp'],'Steals':bstats['stl']/bstats['gp'],'Blocks':bstats['blk']/bstats['gp'],'Turnovers':bstats['tov']/bstats['gp'],'Opp. Points':bstats['oppPts']/bstats['gp'],
+                 "Opp. FG%":bstats['oppFg']*100/bstats['oppFga'],"Opp. TP%":bstats['oppTp']*100/bstats['oppTpa'],'Opp. Rebounds':(bstats['oppOrb']+bstats['oppDrb'])/bstats['gp'],
+                 'Opp. Assists':bstats['oppAst']/bstats['gp'],'Opp. Steals':bstats['oppStl']/bstats['gp'],'Opp. Blocks':bstats['oppBlk']/bstats['gp'],'Opp. Turnovers':bstats['oppTov']/bstats['gp']}
+    li = ['Points','FG%','TP%','Rebounds','Assists','Steals','Blocks', 'Turnovers']
+    astring = ""
+    bstring = ""
+    for item in li:
+        isturnovers = (item == 'Turnovers')
+        if (isturnovers and astatssum[item] < bstatssum[item]) or (not isturnovers and astatssum[item] > bstatssum[item]):
+            astring = astring + item + ": **"+str(round(astatssum[item],2))+"**\n"
+            bstring = bstring + item + ": "+str(round(bstatssum[item],2))+"\n"
+        elif (isturnovers and astatssum[item] > bstatssum[item]) or (not isturnovers and astatssum[item] < bstatssum[item]):
+            astring = astring + item + ": "+str(round(astatssum[item],2))+"\n"
+            bstring = bstring + item + ": **"+str(round(bstatssum[item],2))+"**\n"
+        else:
+            astring = astring + item + ": "+str(round(astatssum[item],2))+"\n"
+            bstring = bstring + item + ": "+str(round(bstatssum[item],2))+"\n"
+    aoppstring = ""
+    boppstring = ""
+    for item in li:
+        item = "Opp. "+item
+        isturnovers = (item == 'Opp. Turnovers')
+        if (isturnovers and astatssum[item] > bstatssum[item]) or (not isturnovers and astatssum[item] < bstatssum[item]):
+            aoppstring = aoppstring + item + ": **"+str(round(astatssum[item],2))+"**\n"
+            boppstring = boppstring + item + ": "+str(round(bstatssum[item],2))+"\n"
+        elif (isturnovers and astatssum[item] < bstatssum[item]) or (not isturnovers and astatssum[item] > bstatssum[item]):
+            aoppstring = aoppstring + item + ": "+str(round(astatssum[item],2))+"\n"
+            boppstring = boppstring + item + ": **"+str(round(bstatssum[item],2))+"**\n"
+        else:
+            aoppstring = aoppstring + item + ": "+str(round(astatssum[item],2))+"\n"
+            boppstring = boppstring + item + ": "+str(round(bstatssum[item],2))+"\n"
+    print(aoppstring)
+    embed.add_field(name = ainfo['name']+" "+str(commandSeasona), value = "Record: "+ainfo['record']+"\nPlayoffs: "+aplayoffResult, inline = True)
+    embed.add_field(name = binfo['name']+" "+str(commandSeasonb), value = "Record: "+binfo['record']+"\nPlayoffs: "+bplayoffResult, inline = True)
+    embed.add_field(name = "filler",value = "Yeh", inline = True)
+    embed.add_field(name = ainfo['name']+" "+str(commandSeasona)+" stats", value = astring, inline = True)
+    embed.add_field(name = binfo['name']+" "+str(commandSeasonb)+" stats", value = bstring, inline = True)
+    embed.add_field(name = "filler",value = "Yeh", inline = True)
+    embed.add_field(name = ainfo['name']+" "+str(commandSeasona)+" opponent stats", value = aoppstring, inline = True)
+    embed.add_field(name = binfo['name']+" "+str(commandSeasonb)+" opponent stats", value = boppstring, inline = True)
+    embed.add_field(name = "filler",value = "Yeh", inline = True)
+    aroster = dict()
+    arosterdesc = dict()
+    
+    broster = dict()
+    brosterdesc = dict()
+    for p in players:
+        for s in p['stats']:
+            if not s['playoffs']:
+                if s['season'] == commandSeasona:
+                    if s['tid'] == commandTida:
+                        stats = pull_info.pstats(p, s['season'], playoffs=False, qualifiers=False, tids = commandTida)
+                        if stats['gp'] > 0:
+                            # is on team a
+                            if not p['pid'] in aroster:
+                                aroster.update({p['pid']:s['min']})
+                            else:
+                                aroster.update({p['pid']:aroster[p['pid']]+s['min']})
+                            for r in p['ratings']:
+                                if r['season'] == commandSeasona:
+                                    pot = r['pot']
+                                    ovr = r['ovr']
+                                    pos = r['pos']
+                            age = commandSeasona-p['born']['year']
+                            
+                            
+                            arosterdesc.update({p['pid']:"**"+p['firstName']+" "+p['lastName']+"**:\n"+str(ovr)+"/"+str(pot)+", "+str(pos)+", Age "+str(age)+"\n"+
+                                                str(round(stats['gp'],0))+" GP, "+str(round(stats['gs'],0))+" GS, \n"+str(round(stats['pts'],1))+" pts, "+str(round(stats['orb']+stats['drb'],1))+" reb, "+str(round(stats['ast'],1))+" ast"})
+                if s['season'] == commandSeasonb:
+                    if s['tid'] == commandTidb:
+                         stats = pull_info.pstats(p, s['season'], playoffs=False, qualifiers=False, tids = commandTidb)
+                         if stats['gp'] > 0:
+                            # is on team b
+                            if not p['pid'] in broster:
+                                broster.update({p['pid']:s['min']})
+                            else:
+                                broster.update({p['pid']:aroster[p['pid']]+s['min']})
+                            for r in p['ratings']:
+                                if r['season'] == commandSeasonb:
+                                    pot = r['pot']
+                                    ovr = r['ovr']
+                                    pos = r['pos']
+                            age = commandSeasonb-p['born']['year']
+                           
+                            brosterdesc.update({p['pid']:"**"+p['firstName']+" "+p['lastName']+"**:\n"+str(ovr)+"/"+str(pot)+", "+str(pos)+", Age "+str(age)+"\n"+
+                                                str(round(stats['gp'],0))+" GP, "+str(round(stats['gs'],0))+" GS, \n"+str(round(stats['pts'],1))+" pts, "+str(round(stats['orb']+stats['drb'],1))+" reb, "+str(round(stats['ast'],1))+" ast"})
+  
+    print(aroster)
+    k = sorted(aroster.keys(), key= lambda x: -aroster[x])
+    l = sorted(broster.keys(), key = lambda x: -broster[x])
+    stra = ""
+    for obj in k[0:min(len(k),10)]:
+        stra = stra + arosterdesc[obj]+"\n"
+    strb = ""
+    for obj in l[0:min(len(l),10)]:
+        strb = strb + brosterdesc[obj]+"\n"
+    print(k)
+    embed.add_field(name = ainfo['name']+" "+str(commandSeasona)+" top players", value = stra, inline = True)
+    embed.add_field(name = binfo['name']+" "+str(commandSeasonb)+" top players", value = strb, inline = True)
+    return embed
 def history(embed, team, commandInfo):
     export = shared_info.serverExports[str(commandInfo['serverId'])]
     season = export['gameAttributes']['season']
@@ -589,12 +818,13 @@ def finances(embed, team, commandInfo):
                     roster.append([p['pid'], p['contract']['amount'], False])
                     payroll+= p['contract']['amount']
                     playerCount += 1
-        releasedPlayers = export['releasedPlayers']
-        for rp in releasedPlayers:
-            if rp['tid'] == team['tid']:
-                if rp['contract']['exp'] >= commandInfo['season']:
-                    roster.append([rp['pid'], rp['contract']['amount'], True, rp['contract']['exp']])
-                    payroll+= rp['contract']['amount']
+        if 'releasedPlayers' in export:
+            releasedPlayers = export['releasedPlayers']
+            for rp in releasedPlayers:
+                if rp['tid'] == team['tid']:
+                    if rp['contract']['exp'] >= commandInfo['season']:
+                        roster.append([rp['pid'], rp['contract']['amount'], True, rp['contract']['exp']])
+                        payroll+= rp['contract']['amount']
         roster.sort(key=lambda r: r[1], reverse=True)
         text = ""
         overflow = ""

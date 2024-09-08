@@ -15,6 +15,8 @@ import random
 commandFuncs = {
     'bal': pc.bal,
     'pleaders':pc.leaders,
+    'mostactive':pc.mostactiveusers,
+    'calls':pc.calls,
     'flip':pc.flip,
     'rob':pc.rob,
     'shared':pc.shared,
@@ -25,7 +27,9 @@ commandFuncs = {
     'lottery':pc.lottery,
     'give':pc.give,
     "chatgpt":pc.chatgpt,
-    "wiigeneral":pc.loseall
+    "wiigeneral":pc.loseall,
+    'servers':pc.servers,
+    "mostused":pc.mostusedcommands
     
 }
 
@@ -40,6 +44,14 @@ async def process_text(text, message):
                                     
             await message.channel.send(" ".join(message.content.split(" ")[1:]))
         return
+    if command == 'count':
+        try:
+            value = int(text[1])
+            for i in range (1, min(value,100)):
+                await message.channel.send(i)
+            return
+        except ValueError:
+            return
     commandInfo = {"user":str(message.author.id)}
     commandInfo.update({"guild":message.guild})
     commandInfo.update({"guess":'Heads'})

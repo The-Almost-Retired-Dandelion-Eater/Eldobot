@@ -213,8 +213,12 @@ def standingspredict(embed,commandInfo):
         predictedmov.append(model2.coef_[0]*ratings[item]+model2.intercept_)
 
     predictedmovweight = []
+    if isinstance(export['gameAttributes']['numGames'],list):
+        ng = export['gameAttributes']['numGames'][-1]['value']
+    else:
+        ng = export['gameAttributes']['numGames']
     for i in range (0, len(names)):
-        predictedmovweight.append(0.9-gp[i]/export['gameAttributes']['numGames']*0.6)
+        predictedmovweight.append(0.9-gp[i]/ng*0.6)
 
     # START THE SIMULATIONS
     pdict= dict()
@@ -250,26 +254,40 @@ def standingspredict(embed,commandInfo):
     for sim in range (0,number):
         
         eststandings = dict()
+
+
         for t in range (0, len(names)):
             tname = names[t]
             # first generate ros movs
-            ros_mov=predictedmov[t]*predictedmovweight[t]+(1-predictedmovweight[t])*mov[t]+np.random.normal(0,np.sqrt(export['gameAttributes']['numGames']/gp[t])) # a bit of random noise
+            ros_mov=predictedmov[t]*predictedmovweight[t]+(1-predictedmovweight[t])*mov[t]+np.random.normal(0,np.sqrt(ng/gp[t])) # a bit of random noise
             s = sos[t]
             ros_wr = model.coef_[0]*ros_mov + model.intercept_-np.log(s/(1-s))
             ros_wr = np.exp(ros_wr)/(1+np.exp(ros_wr))
 
-            remaininggameswin = np.random.binomial(export['gameAttributes']['numGames']-gp[t],ros_wr)
+            remaininggameswin = np.random.binomial(ng-gp[t],ros_wr)
             numwins = wins[t]+remaininggameswin
             eststandings.update({tname:numwins})
 
         # now for deciding who makes playoffs
+        c0members = []
+        for t in eststandings.keys():
+            if confs[t] == 0:
+                c0members.append(t)
         
-        c0standings = sorted(eststandings.keys(), key = lambda x : (1-confs[x])*eststandings[x]+np.random.normal(0,0.0001), reverse = True)
-        c1standings = sorted(eststandings.keys(), key = lambda x : (confs[x])*eststandings[x]+np.random.normal(0,0.0001), reverse = True)
-
-        for x in range (0, len(playoffsvector)):
+        c0standings = sorted(c0members, key = lambda x : (1-confs[x])*eststandings[x]+np.random.normal(0,0.0001), reverse = True)
+        c1members = []
+        for t in eststandings.keys():
+            if confs[t] == 1:
+                c1members.append(t)
+        c1standings = sorted(c1members, key = lambda x : (confs[x])*eststandings[x]+np.random.normal(0,0.0001), reverse = True)
+        if sim == 0:
+            print(c0standings)
+            print(c1standings)
+        for x in range (0, min(len(playoffsvector), len(c0standings))):
+            
             temp = pdict[c0standings[x]]
             pdict.update({c0standings[x]:playoffsvector[x]+temp})
+        for x in range (0, min(len(playoffsvector), len(c1standings))):
             temp = pdict[c1standings[x]]
             pdict.update({c1standings[x]:playoffsvector[x]+temp})
     print(pdict)
@@ -281,7 +299,7 @@ def standingspredict(embed,commandInfo):
         s = sos[t]
         ros_wr = model.coef_[0]*ros_mov + model.intercept_-np.log(s/(1-s))
         ros_wr = np.exp(ros_wr)/(1+np.exp(ros_wr))
-        ros_ew = (export['gameAttributes']['numGames']-gp[t])*ros_wr
+        ros_ew = (ng-gp[t])*ros_wr
         ew = wins[t]+ros_ew
         conf = confs[n]
         confstandings[conf].append((n,rates[t],wins[t],losses[t],ros_mov,ew,pdict[n]/number))
@@ -656,21 +674,36 @@ def standings(embed, commandInfo):
     export = shared_info.serverExports[str(commandInfo['serverId'])]
     teams = export['teams']
     season = commandInfo['season']
+    print(season)
     confs = dict()
+    exportconfs = export['gameAttributes']['confs']
+    
+    if 'start' in exportconfs[0]:
+        old = None
+        for c in exportconfs:
+            if isinstance(c['start'],int):
+                if c['start'] > season:
+                    exportconfs = old['value']
+                    break
+            old = c
+        if exportconfs == export['gameAttributes']['confs']:
+            exportconfs = old['value']
+        
+    print(exportconfs)
     for t in teams:
         for s in t['seasons']:
             if s['season'] == season:
-                if not export['gameAttributes']['confs'][s['cid']]['name'] in confs:
-                    print(export['gameAttributes']['confs'])
-                    confs.update({export['gameAttributes']['confs'][s['cid']]['name']:[]})
-                i = confs[export['gameAttributes']['confs'][s['cid']]['name']]
+                
+                if not exportconfs[s['cid']]['name'] in confs:
+                    confs.update({exportconfs[s['cid']]['name']:[]})
+                i = confs[exportconfs[s['cid']]['name']]
                 if 'clinchedPlayoffs' in s:
                     p = s['clinchedPlayoffs']
                 else:
                     p = ""
                 
                 i.append((t['region']+" "+t['name'],s['won'],s['lost'],p))
-                confs.update({export['gameAttributes']['confs'][s['cid']]['name']:i})
+                confs.update({exportconfs[s['cid']]['name']:i})
     for i in confs:
         teams = sorted(confs[i], key = lambda p:p[1]/(max(p[1]+p[2],0.00001)), reverse = True)
         string = ""

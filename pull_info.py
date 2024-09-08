@@ -2,14 +2,14 @@ import decimal
 import copy
 import basics
 
-def pstats(player, season, playoffs=False, qualifiers=False):
+def pstats(player, season, playoffs=False, qualifiers=False, tids = "All"):
     if 'stats' in player:
         #modify
         stats = player['stats']
         for s in stats:
             s['reb'] = s['orb'] + s['drb']
         perGame = ['pts', 'reb', 'drb', 'orb', 'ast', 'stl', 'blk', 'tov', 'min', 'tov', 'pm']
-        totalStats = ['gp', 'ows', 'dws', 'ortg', 'drtg', 'pm100', 'onOff100', 'vorp', 'obpm', 'dbpm', 'ewa', 'per', 'usgp', 'dd', 'td', 'qd', 'fxf']
+        totalStats = ['gp', 'gs','ows', 'dws', 'ortg', 'drtg', 'pm100', 'onOff100', 'vorp', 'obpm', 'dbpm', 'ewa', 'per', 'usgp', 'dd', 'td', 'qd', 'fxf']
         percents = {
             "fg": ['fg', 'fga'],
             "tp": ['tp', 'tpa'],
@@ -22,7 +22,7 @@ def pstats(player, season, playoffs=False, qualifiers=False):
         if season == 'career':
             seasonsPlayed = []
             for s in stats:
-                if s['gp'] > 0:
+                if s['gp'] > 0 and (tids == "All" or s['tid'] == tids):
                     seasonsPlayed.append(s['season'])
             seasonsPlayed = set(seasonsPlayed)
             seasonsPlayed = list(seasonsPlayed)
@@ -34,7 +34,7 @@ def pstats(player, season, playoffs=False, qualifiers=False):
             total = 0
             totalGames = 0
             for s in player['stats']:
-                if s['season'] in season and s['playoffs'] == playoffs:
+                if s['season'] in season and s['playoffs'] == playoffs and (tids == "All" or s['tid'] == tids):
                     total += s[stat]
                     totalGames += s['gp']
             try: 
@@ -46,7 +46,7 @@ def pstats(player, season, playoffs=False, qualifiers=False):
             total = 0
             numGames = 0
             for s in player['stats']:
-                if s['season'] in season and s['playoffs'] == playoffs:
+                if s['season'] in season and s['playoffs'] == playoffs and (tids == "All" or s['tid'] == tids):
                     statToAdd = s[stat]
                     if stat in ['per', 'obpm', 'dbpm', 'pm100', 'onOff100', 'usgp', 'ortg', 'drtg']:
                         statToAdd = s[stat]*s['gp']
@@ -64,7 +64,7 @@ def pstats(player, season, playoffs=False, qualifiers=False):
             totalMade = 0
             totalAttempts = 0
             for s in player['stats']:
-                if s['season'] in season and s['playoffs'] == playoffs:
+                if s['season'] in season and s['playoffs'] == playoffs and (tids == "All" or s['tid'] == tids):
                     totalMade += s[info[0]]
                     totalAttempts += s[info[1]]
             try: 
@@ -75,14 +75,34 @@ def pstats(player, season, playoffs=False, qualifiers=False):
                 statsDict[stat] = 0
             else:
                 statsDict[stat] = finalPercent
-        #finally, get the tids
-        tids = []
+        #EFG and TS%
+        totalnum = 0
+        totaldenom = 0
+        ts1 = 0
+        ts2 = 0
         for s in player['stats']:
-            if s['season'] in season and s['playoffs'] == playoffs and s['gp'] > 0:
-                tids.append(s['tid'])
-        tids = set(tids)
-        tids = list(tids)
-        statsDict['teams'] = tids
+            
+            if s['season'] in season and s['playoffs'] == playoffs and (tids == "All" or s['tid'] == tids):
+
+                totalnum += s['fg']+0.5*s['tp']
+                totaldenom += s['fga']
+                ts1 += s['pts']
+                ts2 += (0.475*s['fta']+s['fga'])*2
+        if totaldenom > 0:
+            statsDict['eFG%'] = round(totalnum/totaldenom*100,1)
+            statsDict['TS%'] = round(ts1/ts2*100,1)
+
+        else:
+            statsDict['eFG%'] = 0
+            statsDict['TS%'] = 0
+        #finally, get the tids
+        tids2 = []
+        for s in player['stats']:
+            if s['season'] in season and s['playoffs'] == playoffs and s['gp'] > 0 and (tids == "All" or s['tid'] == tids):
+                tids2.append(s['tid'])
+        tids2 = set(tids2)
+        tids2 = list(tids2)
+        statsDict['teams'] = tids2
         return statsDict
     else:
         return None
@@ -222,7 +242,7 @@ def tinfo(t, season=None):
     return teamDict
 
 def tgeneric(tid, p=None):
-    print(tid)
+
     if tid == -1:
         name = 'Free Agent'
     if tid == -3:
@@ -240,13 +260,15 @@ def tgeneric(tid, p=None):
     }
 
 def playoff_result(roundsWon, playoffSettings, season, omitMissed=False):
+
     result = 'missed playoffs'
     if roundsWon > -1:
         result = f'made round {roundsWon+1}'
     #print(playoffSettings)
-    if isinstance(playoffSettings[0], int):
+    if len(playoffSettings) == 0:
+        totalRounds = 0
+    elif isinstance(playoffSettings[0], int):
         totalRounds = len(playoffSettings)
-        print("hakoo")
     else:
         for p in playoffSettings:
 

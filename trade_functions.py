@@ -29,7 +29,13 @@ async def scan_text(text, message):
         #teamOneLine = text[firstIndex].split(',')
         teamOneLine = re.split(r',\s*|\s+and\s+',text[firstIndex])
         teamOneRole = teamOneLine[0].split(' ')[0].replace('&', '').replace('>', '')
-        role = get(message.guild.roles, id=int(teamOneRole))
+        try:
+            role = get(message.guild.roles, id=int(teamOneRole))
+        except ValueError:
+            errorText = f"**{message.guild.name} Trade Confirmation Channel**" + '\n' + f"> {message.content}" + '\n' + '\n' + 'Your format seems to be invalid. Make sure that two team roles are pinged.'
+            await message.delete()
+            await message.author.send(errorText)
+            return
         teamOneName = role.name.strip().replace("  "," ")
         teamOneAssets = [' '.join(teamOneLine[0].split(' ')[1:])] + teamOneLine[1:]
         #teamTwoLine = text[secondIndex].split(',')
@@ -77,7 +83,7 @@ async def scan_text(text, message):
                         a = a.replace("to the","").replace(" for ","").replace(" trade","").replace(" traded","")
                         #check if a has a year in it - if so, it's a draft pick
                         draftPick = False
-                        for i in range(1000, 3000):
+                        for i in range(0, 3000):
                             if str(i) in a:
                                 draftPick = True
                                 pickYear = i

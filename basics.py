@@ -228,7 +228,11 @@ async def load_export_content(text, message):
                 for p in players:
                     p['stats'].sort(key=lambda s: s['season'])
                     p['ratings'].sort(key=lambda r: r['season'])
-                
+                    p['contract'].update({'amount':round(p['contract']['amount'],0)})
+                   
+                current_dir = os.getcwd()
+                path_to_file = os.path.join(current_dir, "exports", f"{str(message.guild.id)}-export.json")
+                await save_db(shared_info.serverExports[str(message.guild.id)], path_to_file)
                 await message.channel.send('Complete!')
             except Exception as e:
                 print(f"An error: {e}") 
@@ -382,7 +386,7 @@ def find_pick_info(text, export):
             if txt in text:
                 pickData['round'] = roundNum
     #find the year
-    for i in range(1000, 3000):
+    for i in range(0, 3000):
         if '' + str(i) + '' in text:
             pickData['year'] = i
     #find the team

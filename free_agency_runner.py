@@ -9,12 +9,15 @@ import copy
 import random
 
 async def offer_score(offer, serverId):
+
     serverExport = shared_info.serverExports[str(serverId)]
     players = serverExport['players']
     teams = serverExport['teams']
     season = serverExport['gameAttributes']['season']
     for p in players:
+        
         if p['pid'] == offer['player']:
+
             playerOvr = p['ratings'][-1]['ovr']
             playerPos = p['ratings'][-1]['pos']
             playerAge = p['born']['year'] - season
@@ -66,14 +69,14 @@ async def offer_score(offer, serverId):
                         teamHype = ts[-1]['hype']
                     teamWinning = teamWinPercent*0.85 + teamHype*0.15
             winningScore = (0.5 + teamWinning)*offer['amount']
-            #print("winning score "+str(winningScore))
+
             #calculate fame score (50% hype, 50% rotation)
             #hype variable should be made already. if it's not, we've got other errors on our hands anyway, so may as well assume it's there
             #rotation calculation
             playersBetter = 0
-            for p in players:
-                if p['tid'] == offer['team'] and p['ratings'][-1]['ovr'] >= playerOvr:
-                    if p['ratings'][-1]['pos'] == playerPos:
+            for p2 in players:
+                if p2['tid'] == offer['team'] and p2['ratings'][-1]['ovr'] >= playerOvr:
+                    if p2['ratings'][-1]['pos'] == playerPos:
                         playersBetter += 1.5
                     else:
                         playersBetter += 0.75
@@ -83,10 +86,10 @@ async def offer_score(offer, serverId):
             if teamHype == -1000:
                 teamHype = 0
             fameScore = (fameScore*0.5 + (teamHype + 0.5)*0.5)*offer['amount']
-            #print("fame score "+str(fameScore))
+
             #calculate money score (80% money per year, 20% total money)
             moneyScore = 0.8*offer['amount'] + 0.2*(offer['amount']*offer['years'])
-            #print("money score "+str(moneyScore))
+
             #loyalty score (15% years with team prior, 85% trade penalty)
             yearsWith = 0
             for s in playerStats:
@@ -96,31 +99,45 @@ async def offer_score(offer, serverId):
             #print(yearsWith)
             penalty = pull_info.trade_penalty(offer['team'], serverExport)
             loyalScore = ((1 + (yearsWith/10))*0.15 + ((1 - penalty)*0.85))*offer['amount']
-            #print("loyal score "+str(loyalScore))
+
             #combine our scores into the final offer score
             loyalScore = loyalScore*playerLoyal
             winningScore = winningScore*playerWinning
             moneyScore = moneyScore*playerMoney
             fameScore = fameScore*playerFame
-            finalScore = (loyalScore + winningScore + moneyScore + fameScore) / (playerLoyal + playerWinning + playerMoney + playerFame)
+            #add idiosyncratic component
+            for t in teams:
+
+                if t['tid'] == offer['team']:
+                    string = t['abbrev']+t['region']+t['name']+"-----"+p['firstName']+" "+p['lastName']
+
+            integer2 = 0
+            for char in string:
+                integer2 += ord(char)*ord(char)
+            idiosyncratic = ((integer2 % 10000) / 10000)*((integer2 % 10000) / 10000)*offer['amount']+0.75*offer['amount']
+            
+            idiosyncraticweight = 0.05
+            if 'idiosyncratic' in serversList[str(serverId)]:
+                idiosyncraticweight = float(serversList[str(serverId)]['idiosyncratic'])
+            finalScore = (loyalScore + winningScore + moneyScore + fameScore+idiosyncratic*idiosyncraticweight) / (playerLoyal + playerWinning + playerMoney + playerFame+idiosyncraticweight)
             #now for the final part... years!
             years = offer['years']
             if offer['amount'] < playerRequest/1000:
                 
                 if offer['option'] != None:
                     if offer['option'] == 'PO':
-                        years += 1
-                    if offer['option'] == 'TO':
                         years -= 1
+                    if offer['option'] == 'TO':
+                        years += 1
                 finalScore = finalScore*(1 + (-0.10*years))
             if offer['amount'] > playerRequest/1000:
                 if offer['option'] != None:
                     if offer['option'] == 'PO':
-                        years -= 1
-                    if offer['option'] == 'TO':
                         years += 1
+                    if offer['option'] == 'TO':
+                        years -= 1
                 finalScore = finalScore*(1 + (0.10*years))
-            
+            # Bugfix: options should be treated as +1 year for offers larger than asking price
             #adding later - options! 15% penalty for a TO. 15% boost for a PO.
             if offer['option'] != None:
                 if offer['option'] == 'PO':
@@ -133,6 +150,10 @@ async def offer_score(offer, serverId):
                 boost = 0.5 * (-0.75**(playerAge - 28)) + 0.5
                 finalScore = finalScore*(1+boost*(offer['years']-1))
 
+
+            
+
+            finalScore = finalScore 
 
             return finalScore
 async def validitytest(o,p,players,season,invalidations,signings,export,serverSettings,hardCap, playerName,teamName,serverId):

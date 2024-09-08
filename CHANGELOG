@@ -1,0 +1,35 @@
+CHANGELOG
+
+03-18-23
+-Uploaded to Github
+-Added new moderators category for commands
+-Added a filler addgm command to hold the place
+-Modified commands.py and created new files for mod commands, also created changelog
+
+-Updated the default server in servers.json to include a "teamlist" object
+-Made addgm command functional
+-Added new -teamlist command under mods category
+#NOTE: mods category won't necessarily be commands only accessible by mods. I intend on keeping a separate system, since some commands (runfa, editing settings, etc) will have to be mod-only but fall under other categories anyway. Mods command is just relating to general maintainance and broad, universal commands.
+
+03-19-23
+-Happy Laetare Sunday
+-Added functional -removegm command
+
+-New alias 'setgm' which can act in place of 'addgm' (aliases are stored in main.py)
+-Updated default server in server.json to include maxRoster and holdout settings, simple FA related settings to test the system on
+-Added new '-settings fa' screen to display the existing FA settings
+-Added to settings_checks.py, checks for said settings, and updated settingsDirectory in commands.py (is commands.py a bad place for that? It wouldn't be hard to move)
+
+03-25-23
+-Added FA commands category
+-Fixed an error in the command aliases
+-Added base offer command
+
+-Added two new arrays to the default server, offers and backupOffers
+
+03-30-23
+-Offer command
+-Updated basics.group_numbers function for when no seasons are given
+-Made the draft team on -bio default to "undrafted" if no team is found
+
+I give up, no more changelog. Big things are happening

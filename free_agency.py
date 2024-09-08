@@ -24,7 +24,8 @@ commandFuncs = {
     'resetgamestrade':fa_commands.reset,
     'contractrules':fa_commands.viewrules,
     'addrule':fa_commands.addrule,
-    'deleterule':fa_commands.deleterule
+    'deleterule':fa_commands.deleterule,
+    'viewalloffers':fa_commands.viewalloffers
 }
 
 async def process_text(text, message):
